@@ -607,7 +607,8 @@ function showScreen(id){
   if(target){target.classList.remove("hidden");}
   currentScreen=id;
   const fabs=document.getElementById("fab-wrap");
-  if(fabs)fabs.style.display=id==="screen-dashboard"?"flex":"none";
+  const isPro=currentUser&&currentUser.role==="pro";
+  if(fabs)fabs.style.display=(id==="screen-dashboard"&&!isPro)?"flex":"none";
   if(id==="screen-dashboard"){updateTopTitle();}
 }
 
@@ -944,7 +945,14 @@ function mkTbl(headers,pcts){
 }
 
 function bindChecks(table,cb){
+  const isPro=currentUser&&currentUser.role==="pro";
   table.querySelectorAll(".ck").forEach(ck=>{
+    if(isPro){
+      ck.disabled=true;
+      ck.style.cursor="not-allowed";
+      ck.style.opacity="0.5";
+      return;
+    }
     ck.addEventListener("change",function(e){
       e.stopPropagation();
       const h=houses.find(x=>x.id===parseInt(this.dataset.h));if(!h)return;
@@ -961,7 +969,14 @@ function bindChecks(table,cb){
 }
 
 function bindCosts(table){
+  const isPro=currentUser&&currentUser.role==="pro";
   table.querySelectorAll(".ci").forEach(inp=>{
+    if(isPro){
+      inp.disabled=true;
+      inp.style.cursor="not-allowed";
+      inp.style.opacity="0.5";
+      return;
+    }
     inp.addEventListener("change",function(){
       const h=houses.find(x=>x.id===parseInt(this.dataset.h));if(!h)return;
       const s=parseInt(this.dataset.s),i=parseInt(this.dataset.i);
@@ -1020,6 +1035,7 @@ function setupSwipe(){
 function closeM(){document.getElementById("mroot").innerHTML="";}
 
 function openAdd(){
+  if(currentUser&&currentUser.role==="pro"){showToast("Sin permisos para agregar casas","err");return;}
   document.getElementById("mroot").innerHTML=`<div class="mwrap"><div class="modal">
     <h3>Nueva casa</h3>
     <label class="fl">Nombre</label><input class="fi" type="text" id="nn" placeholder="Ej: Casa Lote 12"/>
@@ -1043,6 +1059,7 @@ function addHouse(){
 }
 
 function openArchive(){
+  if(currentUser&&currentUser.role==="pro"){showToast("Sin permisos para acceder a bodega","err");return;}
   document.getElementById("mroot").innerHTML=`<div class="mwrap"><div class="modal" style="max-height:85vh;overflow-y:auto">
     <h3>Bodega (${archived.length} casas)</h3>
     ${archived.length===0
@@ -1206,17 +1223,21 @@ function addSubCfg(sid){cfg.subs[sid].push({name:"Nueva subactividad",sign:-1});
 
 function openCfgUsers(){
   const isAdmin=currentUser&&currentUser.role==="admin";
-  let uhtml=users.map((u,idx)=>`<div class="user-row">
-    <div class="user-info">
-      <div class="user-name">${u.name}</div>
-      <div class="user-email">${u.email}</div>
-      <span class="user-role ${u.role}">${u.role==="admin"?"Administrador":u.role==="pro"?"Profesional":"Normal"}</span>
-    </div>
-    ${isAdmin?`<div style="display:flex;gap:6px">
-      <button class="backup-restore" onclick="editUser(${idx})">Editar</button>
-      ${u.email!==currentUser.email?`<button class="user-del" onclick="deleteUser(${idx})">Eliminar</button>`:""}
-    </div>`:""}
-  </div>`).join("");
+  let uhtml="";
+  
+  if(isAdmin){
+    uhtml=users.map((u,idx)=>`<div class="user-row">
+      <div class="user-info">
+        <div class="user-name">${u.name}</div>
+        <div class="user-email">${u.email}</div>
+        <span class="user-role ${u.role}">${u.role==="admin"?"Administrador":u.role==="pro"?"Profesional":"Normal"}</span>
+      </div>
+      <div style="display:flex;gap:6px">
+        <button class="backup-restore" onclick="editUser(${idx})">Editar</button>
+        ${u.email!==currentUser.email?`<button class="user-del" onclick="deleteUser(${idx})">Eliminar</button>`:""}
+      </div>
+    </div>`).join("");
+  }
 
   document.getElementById("mroot").innerHTML=`<div class="mwrap"><div class="modal" style="max-width:420px">
     <button class="modal-back" onclick="openCfg()">‹ Configuración</button>
