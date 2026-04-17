@@ -768,6 +768,7 @@ function buildCard(house,st){
   const wrap=document.createElement("div");wrap.className="hcard";
   const acc=calcAccumulated(house,3);
   const isFinOpen=!!finOpen[house.id];
+  const isPro=currentUser&&currentUser.role==="pro";
   let balHtml="";
 
   if(st.type==="normal"){
@@ -801,19 +802,30 @@ function buildCard(house,st){
   }
 
   const hd=document.createElement("div");hd.className="hcard-head";
-  const accVal=acc.totalReal;
-  const accColor=accVal>=0?"green":"red";
   const showAccHeader=(st.type==="normal"||st.type==="retention"||st.type==="warranty");
+  
+  let headerValue, headerLabel, headerColor;
+  if(isPro && st.type==="normal"){
+    const moEtapa=getMoForStage(house,st.id);
+    headerValue=moEtapa;
+    headerLabel="MO etapa";
+    headerColor="green";
+  }else{
+    const accVal=acc.totalReal;
+    headerValue=accVal;
+    headerLabel="Balance real";
+    headerColor=accVal>=0?"green":"red";
+  }
 
   hd.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
     <div class="hcard-name">${house.name}</div>
     ${showAccHeader?`<div style="text-align:right;flex-shrink:0">
-      <div class="bal-lbl" style="margin-bottom:2px">Balance real</div>
-      <div class="bal-val big ${accColor}">₡${fm(accVal)}</div>
+      <div class="bal-lbl" style="margin-bottom:2px">${headerLabel}</div>
+      <div class="bal-val big ${headerColor}">₡${fm(headerValue)}</div>
     </div>`:""}
   </div>`;
 
-  if(st.type!=="start"){
+  if(st.type!=="start" && !isPro){
     const finBtn=document.createElement("button");
     finBtn.className="tog-btn";
     finBtn.style.cssText="border-top:none;padding:8px 14px 0;background:transparent;min-height:34px";
@@ -837,6 +849,8 @@ function buildCard(house,st){
 
 function buildSubs(house,st){
   const wrap=document.createElement("div");wrap.className="sub-scroll";
+  const isPro=currentUser&&currentUser.role==="pro";
+  
   if(st.type==="start"){
     const t=mkTbl(["Subactividad","✓","Fecha"],[55,12,33]);
     const tb=document.createElement("tbody");
@@ -860,35 +874,57 @@ function buildSubs(house,st){
     const subs=getSubsForStage(st.id),pi=pagoIdx(st.id);
     const pagoAmt=Math.round((house.contractAmount||0)*(cfg.pct[st.id]||0)/100);
     const moAmt=getMoForStage(house,st.id);
-    const t=mkTbl(["Subactividad","✓","Monto (₡)","Fecha"],[36,8,30,26]);
+    
+    const headers=isPro?["Subactividad","✓","Fecha"]:["Subactividad","✓","Monto (₡)","Fecha"];
+    const pcts=isPro?[62,12,26]:[36,8,30,26];
+    const t=mkTbl(headers,pcts);
     const tb=document.createElement("tbody");
+    
     subs.forEach((sub,i)=>{
       const e=(house.subs[st.id]||{})[i]||{};
       const isPago=i===pi;
       const isMO=sub.name.toLowerCase().includes("mano de obra")&&!isPago;
       const tr=document.createElement("tr");
       if(isPago)tr.className="pago-row";else if(isMO)tr.className="mo-row";
-      if(isPago){
-        tr.innerHTML=`<td><span class="pago-lbl">Pago avance</span></td>
-          <td><input type="checkbox" ${e.done?"checked":""} data-h="${house.id}" data-s="${st.id}" data-i="${i}" class="ck"/></td>
-          <td><span class="pago-lbl">₡${fm(pagoAmt)}</span></td>
-          <td class="dt">${fd(e.doneAt)}</td>`;
-      }else if(isMO){
-        tr.innerHTML=`<td><span class="mo-lbl">MO</span><br><span style="font-size:10px;color:#00C853">Ref: ₡${fm(moAmt)}</span></td>
-          <td><input type="checkbox" ${e.done?"checked":""} data-h="${house.id}" data-s="${st.id}" data-i="${i}" class="ck"/></td>
-          <td><input type="number" placeholder="0" value="${e.cost||""}" data-h="${house.id}" data-s="${st.id}" data-i="${i}" class="ci"/></td>
-          <td class="dt">${fd(e.doneAt)}</td>`;
+      
+      if(isPro){
+        if(isPago){
+          tr.innerHTML=`<td><span class="pago-lbl">Pago avance</span></td>
+            <td><input type="checkbox" ${e.done?"checked":""} data-h="${house.id}" data-s="${st.id}" data-i="${i}" class="ck"/></td>
+            <td class="dt">${fd(e.doneAt)}</td>`;
+        }else if(isMO){
+          tr.innerHTML=`<td><span class="mo-lbl">MO</span></td>
+            <td><input type="checkbox" ${e.done?"checked":""} data-h="${house.id}" data-s="${st.id}" data-i="${i}" class="ck"/></td>
+            <td class="dt">${fd(e.doneAt)}</td>`;
+        }else{
+          tr.innerHTML=`<td>${sub.name}</td>
+            <td><input type="checkbox" ${e.done?"checked":""} data-h="${house.id}" data-s="${st.id}" data-i="${i}" class="ck"/></td>
+            <td class="dt">${fd(e.doneAt)}</td>`;
+        }
       }else{
-        tr.innerHTML=`<td>${sub.name}</td>
-          <td><input type="checkbox" ${e.done?"checked":""} data-h="${house.id}" data-s="${st.id}" data-i="${i}" class="ck"/></td>
-          <td><input type="number" placeholder="0" value="${e.cost||""}" data-h="${house.id}" data-s="${st.id}" data-i="${i}" class="ci"/></td>
-          <td class="dt">${fd(e.doneAt)}</td>`;
+        if(isPago){
+          tr.innerHTML=`<td><span class="pago-lbl">Pago avance</span></td>
+            <td><input type="checkbox" ${e.done?"checked":""} data-h="${house.id}" data-s="${st.id}" data-i="${i}" class="ck"/></td>
+            <td><span class="pago-lbl">₡${fm(pagoAmt)}</span></td>
+            <td class="dt">${fd(e.doneAt)}</td>`;
+        }else if(isMO){
+          tr.innerHTML=`<td><span class="mo-lbl">MO</span><br><span style="font-size:10px;color:#00C853">Ref: ₡${fm(moAmt)}</span></td>
+            <td><input type="checkbox" ${e.done?"checked":""} data-h="${house.id}" data-s="${st.id}" data-i="${i}" class="ck"/></td>
+            <td><input type="number" placeholder="0" value="${e.cost||""}" data-h="${house.id}" data-s="${st.id}" data-i="${i}" class="ci"/></td>
+            <td class="dt">${fd(e.doneAt)}</td>`;
+        }else{
+          tr.innerHTML=`<td>${sub.name}</td>
+            <td><input type="checkbox" ${e.done?"checked":""} data-h="${house.id}" data-s="${st.id}" data-i="${i}" class="ck"/></td>
+            <td><input type="number" placeholder="0" value="${e.cost||""}" data-h="${house.id}" data-s="${st.id}" data-i="${i}" class="ci"/></td>
+            <td class="dt">${fd(e.doneAt)}</td>`;
+        }
       }
       tb.appendChild(tr);
     });
     t.appendChild(tb);
     bindChecks(t,(h,sid)=>{checkAdvNormal(h,sid);save();pushAll();renderAll();});
-    bindCosts(t);wrap.appendChild(t);return wrap;
+    if(!isPro)bindCosts(t);
+    wrap.appendChild(t);return wrap;
   }
 
   if(st.type==="retention"){
@@ -936,7 +972,6 @@ function buildSubs(house,st){
   }
   return wrap;
 }
-
 function mkTbl(headers,pcts){
   const t=document.createElement("table");t.className="st";
   const thead=document.createElement("thead");const tr=document.createElement("tr");
