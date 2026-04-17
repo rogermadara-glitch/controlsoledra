@@ -30,6 +30,9 @@ html,body{background:#0a0a0a;color:#e8e8e8;font-family:'Inter',system-ui,sans-se
 .login-input{width:100%;padding:12px 14px;font-size:14px;border:1px solid var(--border);border-radius:var(--radius-sm);background:#111;color:var(--text1);font-family:'Inter',sans-serif;transition:border-color 0.2s}
 .login-input:focus{outline:none;border-color:var(--green)}
 .login-input::placeholder{color:var(--text3)}
+.pw-field{position:relative}
+.pw-toggle{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:transparent;border:none;cursor:pointer;padding:4px;color:var(--text3)}
+.pw-toggle:hover{color:var(--text1)}
 .login-forgot{font-size:12px;color:var(--text3);text-align:right;margin-top:8px;cursor:pointer;text-decoration:underline}
 .login-forgot:hover{color:var(--green)}
 .login-btn{width:100%;padding:13px;font-size:14px;font-weight:600;background:var(--green);color:#000;border:none;border-radius:var(--radius-sm);cursor:pointer;margin-top:24px;font-family:'Inter',sans-serif}
@@ -261,7 +264,13 @@ input.fi::placeholder{color:var(--text3)}
     </div>
     <div class="login-field">
       <label class="login-label">Contraseña</label>
-      <input class="login-input" type="password" id="login-password" placeholder="••••••••"/>
+      <div class="pw-field">
+        <input class="login-input" type="password" id="login-password" placeholder="••••••••"/>
+        <button class="pw-toggle" type="button" onclick="togglePassword('login-password',this)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="eye-open"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="eye-closed" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+        </button>
+      </div>
       <div class="login-forgot" onclick="showForgotPassword()">¿Olvidó su contraseña?</div>
     </div>
     <button class="login-btn" onclick="attemptLogin()">Iniciar sesión</button>
@@ -530,6 +539,20 @@ function showForgotPassword(){
   alert("Contactate con el administrador para restablecer tu contraseña.");
 }
 
+function togglePassword(inputId,btn){
+  const inp=document.getElementById(inputId);
+  const eyeOpen=btn.querySelector('.eye-open');
+  const eyeClosed=btn.querySelector('.eye-closed');
+  if(inp.type==="password"){
+    inp.type="text";
+    eyeOpen.style.display="none";
+    eyeClosed.style.display="block";
+  }else{
+    inp.type="password";
+    eyeOpen.style.display="block";
+    eyeClosed.style.display="none";
+  }
+}
 function logout(){
   if(!confirm("¿Cerrar sesión?"))return;
   clearSession();
@@ -1183,14 +1206,16 @@ function addSubCfg(sid){cfg.subs[sid].push({name:"Nueva subactividad",sign:-1});
 
 function openCfgUsers(){
   const isAdmin=currentUser&&currentUser.role==="admin";
-  const isPro=currentUser&&currentUser.role==="pro";
   let uhtml=users.map((u,idx)=>`<div class="user-row">
     <div class="user-info">
       <div class="user-name">${u.name}</div>
       <div class="user-email">${u.email}</div>
       <span class="user-role ${u.role}">${u.role==="admin"?"Administrador":u.role==="pro"?"Profesional":"Normal"}</span>
     </div>
-    ${isAdmin&&u.email!==currentUser.email?`<button class="user-del" onclick="deleteUser(${idx})">Eliminar</button>`:""}
+    ${isAdmin?`<div style="display:flex;gap:6px">
+      <button class="backup-restore" onclick="editUser(${idx})">Editar</button>
+      ${u.email!==currentUser.email?`<button class="user-del" onclick="deleteUser(${idx})">Eliminar</button>`:""}
+    </div>`:""}
   </div>`).join("");
 
   document.getElementById("mroot").innerHTML=`<div class="mwrap"><div class="modal" style="max-width:420px">
@@ -1207,7 +1232,6 @@ function openCfgUsers(){
     <div class="mbtns"><button class="btn-no" onclick="closeM()">Cerrar</button></div>
   </div></div>`;
 }
-
 function openAddUser(){
   document.getElementById("mroot").innerHTML=`<div class="mwrap"><div class="modal">
     <button class="modal-back" onclick="openCfgUsers()">‹ Usuarios</button>
@@ -1223,9 +1247,21 @@ function openAddUser(){
       <option value="admin">Administrador (acceso total)</option>
     </select>
     <label class="fl">Contraseña</label>
-    <input class="fi" type="password" id="new-user-pw" placeholder="Mínimo 8 caracteres"/>
+    <div class="pw-field">
+      <input class="fi" type="password" id="new-user-pw" placeholder="Mínimo 8 caracteres"/>
+      <button class="pw-toggle" type="button" onclick="togglePassword('new-user-pw',this)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="eye-open"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="eye-closed" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+      </button>
+    </div>
     <label class="fl">Confirmar contraseña</label>
-    <input class="fi" type="password" id="new-user-pw2" placeholder="Repetir contraseña"/>
+    <div class="pw-field">
+      <input class="fi" type="password" id="new-user-pw2" placeholder="Repetir contraseña"/>
+      <button class="pw-toggle" type="button" onclick="togglePassword('new-user-pw2',this)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="eye-open"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="eye-closed" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+      </button>
+    </div>
     <div class="mbtns">
       <button class="btn-no" onclick="openCfgUsers()">Cancelar</button>
       <button class="btn-ok" onclick="createUser()">Crear</button>
@@ -1253,16 +1289,33 @@ function deleteUser(idx){
 }
 
 function openChangePassword(){
-  const isAdmin=currentUser&&currentUser.role==="admin";
   document.getElementById("mroot").innerHTML=`<div class="mwrap"><div class="modal">
     <button class="modal-back" onclick="openCfgUsers()">‹ Usuarios</button>
     <h3>Cambiar contraseña</h3>
     <label class="fl">Contraseña actual</label>
-    <input class="fi" type="password" id="change-pw-current" placeholder="Tu contraseña actual"/>
+    <div class="pw-field">
+      <input class="fi" type="password" id="change-pw-current" placeholder="Tu contraseña actual"/>
+      <button class="pw-toggle" type="button" onclick="togglePassword('change-pw-current',this)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="eye-open"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="eye-closed" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+      </button>
+    </div>
     <label class="fl">Nueva contraseña</label>
-    <input class="fi" type="password" id="change-pw-new" placeholder="Mínimo 8 caracteres"/>
+    <div class="pw-field">
+      <input class="fi" type="password" id="change-pw-new" placeholder="Mínimo 8 caracteres"/>
+      <button class="pw-toggle" type="button" onclick="togglePassword('change-pw-new',this)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="eye-open"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="eye-closed" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+      </button>
+    </div>
     <label class="fl">Confirmar nueva contraseña</label>
-    <input class="fi" type="password" id="change-pw-new2" placeholder="Repetir contraseña"/>
+    <div class="pw-field">
+      <input class="fi" type="password" id="change-pw-new2" placeholder="Repetir contraseña"/>
+      <button class="pw-toggle" type="button" onclick="togglePassword('change-pw-new2',this)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="eye-open"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="eye-closed" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+      </button>
+    </div>
     <div class="mbtns">
       <button class="btn-no" onclick="openCfgUsers()">Cancelar</button>
       <button class="btn-ok" onclick="changePassword()">Cambiar</button>
