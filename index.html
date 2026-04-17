@@ -768,6 +768,7 @@ function buildCard(house,st){
   const wrap=document.createElement("div");wrap.className="hcard";
   const acc=calcAccumulated(house,3);
   const isFinOpen=!!finOpen[house.id];
+  const isPro=currentUser&&currentUser.role==="pro";
   let balHtml="";
 
   if(st.type==="normal"){
@@ -800,6 +801,51 @@ function buildCard(house,st){
     </div>`;
   }
 
+  const hd=document.createElement("div");hd.className="hcard-head";
+  const showAccHeader=(st.type==="normal"||st.type==="retention"||st.type==="warranty");
+  
+  let headerValue, headerLabel, headerColor;
+  if(isPro && st.type==="normal"){
+    const moEtapa=getMoForStage(house,st.id);
+    headerValue=moEtapa;
+    headerLabel="MO etapa";
+    headerColor="green";
+  }else{
+    const accVal=acc.totalReal;
+    headerValue=accVal;
+    headerLabel="Balance real";
+    headerColor=accVal>=0?"green":"red";
+  }
+
+  hd.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+    <div class="hcard-name">${house.name}</div>
+    ${showAccHeader?`<div style="text-align:right;flex-shrink:0">
+      <div class="bal-lbl" style="margin-bottom:2px">${headerLabel}</div>
+      <div class="bal-val big ${headerColor}">₡${fm(headerValue)}</div>
+    </div>`:""}
+  </div>`;
+
+  if(st.type!=="start" && !isPro){
+    const finBtn=document.createElement("button");
+    finBtn.className="tog-btn";
+    finBtn.style.cssText="border-top:none;padding:8px 14px 0;background:transparent;min-height:34px";
+    finBtn.innerHTML=`<span style="font-size:11px;color:var(--text3)">${isFinOpen?"Ocultar finanzas":"Ver finanzas"}</span><span class="tog-arr" style="font-size:11px">${isFinOpen?"▲":"▼"}</span>`;
+    finBtn.onclick=e=>{e.stopPropagation();finOpen[house.id]=!finOpen[house.id];renderAll();};
+    hd.appendChild(finBtn);
+    if(isFinOpen){
+      const finPanel=document.createElement("div");finPanel.style.marginTop="8px";finPanel.innerHTML=balHtml;hd.appendChild(finPanel);
+    }
+  }
+
+  wrap.appendChild(hd);
+  const tog=document.createElement("button");tog.className="tog-btn";
+  const isOpen=openId===house.id;
+  tog.innerHTML=`<span>Subactividades</span><span class="tog-arr">${isOpen?"▲":"▼"}</span>`;
+  tog.onclick=e=>{e.stopPropagation();openId=(openId===house.id?null:house.id);renderAll();};
+  wrap.appendChild(tog);
+  if(isOpen){const panel=document.createElement("div");panel.className="sub-panel";panel.appendChild(buildSubs(house,st));wrap.appendChild(panel);}
+  return wrap;
+}
   const hd=document.createElement("div");hd.className="hcard-head";
   const accVal=acc.totalReal;
   const accColor=accVal>=0?"green":"red";
@@ -837,6 +883,8 @@ function buildCard(house,st){
 
 function buildSubs(house,st){
   const wrap=document.createElement("div");wrap.className="sub-scroll";
+  const isPro=currentUser&&currentUser.role==="pro";
+  
   if(st.type==="start"){
     const t=mkTbl(["Subactividad","✓","Fecha"],[55,12,33]);
     const tb=document.createElement("tbody");
@@ -856,6 +904,108 @@ function buildSubs(house,st){
     wrap.appendChild(t);return wrap;
   }
 
+  if(st.type==="normal"){
+    const subs=getSubsForStage(st.id),pi=pagoIdx(st.id);
+    const pagoAmt=Math.round((house.contractAmount||0)*(cfg.pct[st.id]||0)/100);
+    const moAmt=getMoForStage(house,st.id);
+    
+    const headers=isPro?["Subactividad","✓","Fecha"]:["Subactividad","✓","Monto (₡)","Fecha"];
+    const pcts=isPro?[62,12,26]:[36,8,30,26];
+    const t=mkTbl(headers,pcts);
+    const tb=document.createElement("tbody");
+    
+    subs.forEach((sub,i)=>{
+      const e=(house.subs[st.id]||{})[i]||{};
+      const isPago=i===pi;
+      const isMO=sub.name.toLowerCase().includes("mano de obra")&&!isPago;
+      const tr=document.createElement("tr");
+      if(isPago)tr.className="pago-row";else if(isMO)tr.className="mo-row";
+      
+      if(isPro){
+        if(isPago){
+          tr.innerHTML=`<td><span class="pago-lbl">Pago avance</span></td>
+            <td><input type="checkbox" ${e.done?"checked":""} data-h="${house.id}" data-s="${st.id}" data-i="${i}" class="ck"/></td>
+            <td class="dt">${fd(e.doneAt)}</td>`;
+        }else if(isMO){
+          tr.innerHTML=`<td><span class="mo-lbl">MO</span></td>
+            <td><input type="checkbox" ${e.done?"checked":""} data-h="${house.id}" data-s="${st.id}" data-i="${i}" class="ck"/></td>
+            <td class="dt">${fd(e.doneAt)}</td>`;
+        }else{
+          tr.innerHTML=`<td>${sub.name}</td>
+            <td><input type="checkbox" ${e.done?"checked":""} data-h="${house.id}" data-s="${st.id}" data-i="${i}" class="ck"/></td>
+            <td class="dt">${fd(e.doneAt)}</td>`;
+        }
+      }else{
+        if(isPago){
+          tr.innerHTML=`<td><span class="pago-lbl">Pago avance</span></td>
+            <td><input type="checkbox" ${e.done?"checked":""} data-h="${house.id}" data-s="${st.id}" data-i="${i}" class="ck"/></td>
+            <td><span class="pago-lbl">₡${fm(pagoAmt)}</span></td>
+            <td class="dt">${fd(e.doneAt)}</td>`;
+        }else if(isMO){
+          tr.innerHTML=`<td><span class="mo-lbl">MO</span><br><span style="font-size:10px;color:#00C853">Ref: ₡${fm(moAmt)}</span></td>
+            <td><input type="checkbox" ${e.done?"checked":""} data-h="${house.id}" data-s="${st.id}" data-i="${i}" class="ck"/></td>
+            <td><input type="number" placeholder="0" value="${e.cost||""}" data-h="${house.id}" data-s="${st.id}" data-i="${i}" class="ci"/></td>
+            <td class="dt">${fd(e.doneAt)}</td>`;
+        }else{
+          tr.innerHTML=`<td>${sub.name}</td>
+            <td><input type="checkbox" ${e.done?"checked":""} data-h="${house.id}" data-s="${st.id}" data-i="${i}" class="ck"/></td>
+            <td><input type="number" placeholder="0" value="${e.cost||""}" data-h="${house.id}" data-s="${st.id}" data-i="${i}" class="ci"/></td>
+            <td class="dt">${fd(e.doneAt)}</td>`;
+        }
+      }
+      tb.appendChild(tr);
+    });
+    t.appendChild(tb);
+    bindChecks(t,(h,sid)=>{checkAdvNormal(h,sid);save();pushAll();renderAll();});
+    if(!isPro)bindCosts(t);
+    wrap.appendChild(t);return wrap;
+  }
+
+  if(st.type==="retention"){
+    const plazo=cfg.days[4]||90,arrTs=house.stageDate&&house.stageDate[4];
+    const elapsed=daysAgo(arrTs),rem=elapsed!==null?plazo-elapsed:null;
+    const retAmt=Math.round((house.contractAmount||0)*(cfg.pct[4]||5)/100);
+    const t=mkTbl(["Sub","✓","Monto","Estado","Fecha"],[18,8,24,26,24]);
+    const tb=document.createElement("tbody");
+    const e=(house.subs[4]||{})[0]||{};
+    let badge="";
+    if(!e.done&&arrTs){badge=rem>0?`<span class="dbadge warn">${rem}d</span>`:`<span class="dbadge due">Cobrar</span>`;}
+    if(e.done)badge=`<span class="dbadge ok">Cobrada</span>`;
+    const tr=document.createElement("tr");
+    tr.innerHTML=`<td>Ret.</td>
+      <td><input type="checkbox" ${e.done?"checked":""} data-h="${house.id}" data-s="4" data-i="0" class="ck"/></td>
+      <td><span class="ret-amt">₡${fm(retAmt)}</span></td>
+      <td>${badge}</td><td class="dt">${fd(e.doneAt)}</td>`;
+    tb.appendChild(tr);t.appendChild(tb);
+    bindChecks(t,(h)=>{if((h.subs[4]||{})[0]&&h.subs[4][0].done){h.stage=5;if(!h.stageDate)h.stageDate={};h.stageDate[5]=Date.now();}save();pushAll();renderAll();});
+    wrap.appendChild(t);return wrap;
+  }
+
+  if(st.type==="warranty"){
+    const plazo=cfg.days[5]||180,arrTs=house.stageDate&&house.stageDate[5];
+    const elapsed=daysAgo(arrTs),rem=elapsed!==null?plazo-elapsed:null;
+    const t=mkTbl(["Subactividad","✓","Estado","Fecha"],[36,8,32,24]);
+    const tb=document.createElement("tbody");
+    const e=(house.subs[5]||{})[0]||{};
+    let badge="";
+    if(!e.done&&arrTs){badge=rem>0?`<span class="dbadge warn">${rem}d faltan</span>`:`<span class="dbadge due">A bodega</span>`;}
+    if(e.done)badge=`<span class="dbadge ok">En bodega</span>`;
+    const tr=document.createElement("tr");
+    tr.innerHTML=`<td>Garantía</td>
+      <td><input type="checkbox" ${e.done?"checked":""} data-h="${house.id}" data-s="5" data-i="0" class="ck"/></td>
+      <td>${badge}</td><td class="dt">${fd(e.doneAt)}</td>`;
+    tb.appendChild(tr);t.appendChild(tb);
+    bindChecks(t,(h)=>{
+      if((h.subs[5]||{})[0]&&h.subs[5][0].done){
+        archived.push({...h,archivedAt:Date.now()});
+        houses=houses.filter(x=>x.id!==h.id);openId=null;
+      }
+      save();pushAll();renderAll();
+    });
+    wrap.appendChild(t);return wrap;
+  }
+  return wrap;
+}
   if(st.type==="normal"){
     const subs=getSubsForStage(st.id),pi=pagoIdx(st.id);
     const pagoAmt=Math.round((house.contractAmount||0)*(cfg.pct[st.id]||0)/100);
