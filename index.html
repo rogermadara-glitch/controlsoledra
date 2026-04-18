@@ -1639,7 +1639,13 @@ async function showStagePhotos(houseId,stageId){
     const resp=await fetch(SHEET_URL+"?action=listPhotos&houseId="+houseId+"&stage="+stageId+"&mobile="+isMobile);
     const data=await resp.json();
     const photos=data.photos||[];
-    
+    if(isMobile && photos.length > 0){
+  const debug=document.createElement("div");
+  debug.style.cssText="background:#222;padding:10px;margin:10px 0;font-size:10px;color:#0f0;overflow:auto;max-height:100px";
+  debug.textContent="DEBUG: "+photos.length+" fotos. Primera foto tiene base64: "+(photos[0].base64?"SI ("+photos[0].base64.substring(0,50)+"...)":"NO");
+  content.appendChild(debug);
+}
+
     const limit=PHOTO_LIMITS[stageId]||20;
     
     content.innerHTML="";
