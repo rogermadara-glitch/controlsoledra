@@ -1589,11 +1589,11 @@ function showHouseStages(houseId){
   let html='<div class="photo-stage-list">';
   stages.forEach(st=>{
     const count=stats.stats[st.id]||0;
-    const warn=count>st.limit?` <span class="photo-stage-limit">⚠️ Límite: ${st.limit}</span>`:"";
+    const warnText=count>st.limit?` ⚠️ Límite: ${st.limit}`:"";
     html+=`<div class="photo-stage-card" onclick="showStagePhotos(${houseId},${st.id})">
       <div>
         <div class="photo-stage-label">${st.label}</div>
-        <div class="photo-stage-count">${count} / ${st.limit} fotos${warn}</div>
+        <div class="photo-stage-count">${count} / ${st.limit} fotos${warnText?'<span class="photo-stage-limit">'+warnText+'</span>':""}</div>
       </div>
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
     </div>`;
