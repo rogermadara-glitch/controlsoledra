@@ -1578,7 +1578,9 @@ function showHouseStages(houseId){
   title.textContent=house.name;
   backBtn.onclick=()=>{currentHousePhotos=null;renderPhotosList();};
   
-  const stats=photoStats[houseId]||{stats:{1:0,2:0,3:0,5:0}};
+  const stats=photoStats[houseId]||{};
+  const stageCounts=stats.stats||{1:0,2:0,3:0,5:0};
+  
   const stages=[
     {id:1,label:"Etapa 1",limit:20},
     {id:2,label:"Etapa 2",limit:20},
@@ -1586,20 +1588,26 @@ function showHouseStages(houseId){
     {id:5,label:"Garantías",limit:10}
   ];
   
-  let html='<div class="photo-stage-list">';
+  const wrapper=document.createElement("div");
+  wrapper.className="photo-stage-list";
+  
   stages.forEach(st=>{
-    const count=stats.stats[st.id]||0;
-    const warnText=count>st.limit?` ⚠️ Límite: ${st.limit}`:"";
-    html+=`<div class="photo-stage-card" onclick="showStagePhotos(${houseId},${st.id})">
+    const count=stageCounts[st.id]||0;
+    const card=document.createElement("div");
+    card.className="photo-stage-card";
+    card.innerHTML=`
       <div>
         <div class="photo-stage-label">${st.label}</div>
-        <div class="photo-stage-count">${count} / ${st.limit} fotos${warnText?'<span class="photo-stage-limit">'+warnText+'</span>':""}</div>
+        <div class="photo-stage-count">${count} / ${st.limit} fotos${count>st.limit?'<span class="photo-stage-limit"> ⚠️ Límite: '+st.limit+'</span>':""}</div>
       </div>
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-    </div>`;
+    `;
+    card.addEventListener("click",()=>showStagePhotos(houseId,st.id));
+    wrapper.appendChild(card);
   });
-  html+='</div>';
-  content.innerHTML=html;
+  
+  content.innerHTML="";
+  content.appendChild(wrapper);
 }
 
 async function showStagePhotos(houseId,stageId){
