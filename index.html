@@ -1652,8 +1652,9 @@ async function showStagePhotos(houseId,stageId){
       html+='<div class="photo-grid">';
       photos.forEach(p=>{
         const canDelete=currentUser&&(currentUser.role==="admin");
-        html+=`<div class="photo-thumb" onclick="openLightbox('${p.thumbnailUrl}')">
-          <img src="${p.thumbnailUrl}" loading="lazy"/>
+        const imgUrl = "https://drive.google.com/uc?export=view&id=" + p.id;
+html+=`<div class="photo-thumb" onclick="openLightbox('${imgUrl}')">
+  <img src="${imgUrl}" loading="lazy" onerror="this.src='https://drive.google.com/thumbnail?id=${p.id}&sz=w400'"/>
           ${canDelete?`<button class="photo-thumb-del" onclick="event.stopPropagation();deletePhoto('${p.id}')">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
           </button>`:""}
