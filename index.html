@@ -455,7 +455,7 @@ input.fi::placeholder{color:var(--text3)}
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 <script>
-const SHEET_URL="https://script.google.com/macros/s/AKfycby4aCEUCrF4RdbPG3T5p3eCA2T6IB2vgNAvzW5p5B_B2evmZ93naGP0LDSTdq12cS2zng/exec";
+const SHEET_URL="https://script.google.com/macros/s/AKfycbxDcZ1kWdhqxpylF5PB4Kt4hsQdVyeXMLoqV2z82C-8Kp5cqCW5oydk61wgTxArOP03qA/exec";
 const SYNC_MS=10000;
 const IVA_RATE=0.13;
 const SESSION_HOURS=12;
@@ -1530,14 +1530,22 @@ async function createHouseFolders(house){
 }
 
 async function loadPhotoStats(){
+  console.log("Loading photo stats for houses:",houses.map(h=>h.id));
   const promises=houses.map(h=>
     fetch(SHEET_URL+"?action=getPhotoStats&houseId="+h.id)
       .then(r=>r.json())
-      .then(data=>{photoStats[h.id]=data;})
-      .catch(()=>{photoStats[h.id]={stats:{1:0,2:0,3:0,5:0},total:0};})
+      .then(data=>{
+        console.log("Stats for house",h.id,":",data);
+        photoStats[h.id]=data;
+      })
+      .catch(err=>{
+        console.error("Error loading stats for house",h.id,":",err);
+        photoStats[h.id]={stats:{1:0,2:0,3:0,5:0},total:0};
+      })
   );
   await Promise.all(promises);
   localStorage.setItem("th9_photoStats",JSON.stringify(photoStats));
+  console.log("Final photoStats:",photoStats);
 }
 
 function renderPhotosList(){
@@ -1741,7 +1749,10 @@ document.getElementById("photo-file-input").addEventListener("change",async func
 });
 
 async function uploadPhotos(files){
-  if(!currentStagePhotos)return;
+  if(!currentStagePhotos){
+    console.error("No currentStagePhotos");
+    return;
+  }
   
   const MAX_SIZE=5*1024*1024;
   const validFiles=[];
@@ -1762,6 +1773,7 @@ async function uploadPhotos(files){
   
   showToast(`Subiendo ${validFiles.length} foto(s)...`,"info");
   
+  let uploaded=0;
   for(let file of validFiles){
     try{
       const reader=new FileReader();
@@ -1777,20 +1789,29 @@ async function uploadPhotos(files){
       formData.append("houseName",currentStagePhotos.house.name);
       formData.append("stage",currentStagePhotos.stageId);
       formData.append("fileData",base64);
-      formData.append("fileName","foto_"+Date.now()+".jpg");
+      formData.append("fileName","foto_"+Date.now()+"_"+Math.random().toString(36).substr(2,9)+".jpg");
+      
+      console.log("Uploading to:",SHEET_URL);
+      console.log("HouseId:",currentStagePhotos.houseId,"Stage:",currentStagePhotos.stageId);
       
       const resp=await fetch(SHEET_URL,{method:"POST",body:formData});
       const data=await resp.json();
       
+      console.log("Upload response:",data);
+      
       if(data.status!=="ok")throw new Error(data.reason||"Error");
+      uploaded++;
     }catch(e){
+      console.error("Upload error:",e);
       showToast(`Error subiendo ${file.name}`,"err");
     }
   }
   
-  showToast("Fotos subidas ✓");
-  await loadPhotoStats();
-  showStagePhotos(currentStagePhotos.houseId,currentStagePhotos.stageId);
+  if(uploaded>0){
+    showToast(`${uploaded} foto(s) subida(s) ✓`);
+    await loadPhotoStats();
+    await showStagePhotos(currentStagePhotos.houseId,currentStagePhotos.stageId);
+  }
 }
 
 async function deletePhoto(photoId){
