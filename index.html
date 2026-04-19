@@ -1639,7 +1639,6 @@ async function showStagePhotos(houseId,stageId){
     const data=await resp.json();
     const photos=data.photos||[];
 alert("Fotos recibidas: " + photos.length + (photos.length > 0 ? "\nPrimera tiene base64: " + (photos[0].base64 ? "SI" : "NO") : ""));
-content.innerHTML='<p style="text-align:center;color:var(--text3);padding:20px">Cargando fotos...</p>';
 
 const limit=PHOTO_LIMITS[stageId]||20;
     
