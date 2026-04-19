@@ -331,7 +331,7 @@ input.fi::placeholder{color:var(--text3)}
         <div>
           <div class="lobby-card-label">Dashboard</div>
           <div class="lobby-card-sub">Seguimiento de etapas</div>
- <div style="position:fixed;bottom:10px;right:10px;font-size:10px;color:var(--text3);font-weight:500;opacity:0.6">v10.15</div>
+ <div style="position:fixed;bottom:10px;right:10px;font-size:10px;color:var(--text3);font-weight:500;opacity:0.6">v10.16</div>
         </div>
       </div>
 
@@ -1638,6 +1638,7 @@ async function showStagePhotos(houseId,stageId){
     const resp=await fetch(SHEET_URL+"?action=listPhotos&houseId="+houseId+"&stage="+stageId+"&mobile="+isMobile);
     const data=await resp.json();
     const photos=data.photos||[];
+alert("Fotos recibidas: " + photos.length + (photos.length > 0 ? "\nPrimera tiene base64: " + (photos[0].base64 ? "SI" : "NO") : ""));
 content.innerHTML='<p style="text-align:center;color:var(--text3);padding:20px">Cargando fotos...</p>';
 
 const limit=PHOTO_LIMITS[stageId]||20;
