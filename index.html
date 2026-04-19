@@ -229,6 +229,7 @@ input.fi::placeholder{color:var(--text3)}
 .photo-upload-opt:active{background:var(--card2)}
 .photo-upload-opt.disabled{opacity:0.4;cursor:not-allowed}
 .photo-warning{background:var(--amber-dim);border:1px solid #FFB30040;color:var(--amber);font-size:12px;padding:10px 12px;border-radius:8px;margin-bottom:12px}
+@keyframes spin{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
@@ -279,7 +280,7 @@ input.fi::placeholder{color:var(--text3)}
         <div class="lobby-icon green"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#00C853" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></div>
         <div><div class="lobby-card-label">Dashboard</div><div class="lobby-card-sub">Seguimiento de etapas</div></div>
       </div>
-      <div class="lobby-card" id="lobby-card-fotos" onclick="showScreen('screen-fotos')">
+      <div class="lobby-card active-card" id="lobby-card-fotos" onclick="showScreen('screen-fotos')">
         <div class="lobby-wip">Próx.</div>
         <div class="lobby-icon amber"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FFB300" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>
         <div><div class="lobby-card-label">Fotos</div><div class="lobby-card-sub">Registro por etapa</div></div>
@@ -294,7 +295,7 @@ input.fi::placeholder{color:var(--text3)}
         <div><div class="lobby-card-label">Configuración</div><div class="lobby-card-sub">Ajustes del sistema</div></div>
       </div>
     </div>
-    <div style="position:fixed;bottom:10px;right:10px;font-size:10px;color:var(--text3);font-weight:500;opacity:0.6">v10.18</div>
+    <div style="position:fixed;bottom:10px;right:10px;font-size:10px;color:var(--text3);font-weight:500;opacity:0.6">v11.1</div>
   </div>
 </div>
 <!-- DASHBOARD -->
@@ -952,9 +953,19 @@ function renderPhotosList(){
   if(!content)return;
   title.textContent="Fotos";
   backBtn.onclick=()=>showScreen("screen-lobby");
-  content.innerHTML='<p style="text-align:center;color:var(--text3);padding:20px">Cargando casas...</p>';
+
+  content.innerHTML=`
+    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:60vh;gap:16px">
+      <div style="width:44px;height:44px;border:3px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:spin 0.8s linear infinite"></div>
+      <div style="font-size:13px;color:var(--text3)">Cargando casas...</div>
+    </div>`;
+
   loadPhotoStats().then(()=>{
     const wrapper=document.createElement("div");wrapper.className="photo-house-list";
+    if(houses.length===0){
+      content.innerHTML='<p style="text-align:center;color:var(--text3);padding:40px">No hay casas registradas</p>';
+      return;
+    }
     houses.forEach(h=>{
       const stats=photoStats[h.id]||{total:0};
       const card=document.createElement("div");card.className="photo-house-card";
@@ -996,7 +1007,11 @@ async function showStagePhotos(houseId,stageId){
   const stageName={1:"Etapa 1",2:"Etapa 2",3:"Etapa 3",5:"Garantías"}[stageId];
   title.textContent=stageName;
   backBtn.onclick=()=>{currentStagePhotos=null;fabsFotos.style.display="none";showHouseStages(houseId);};
-  content.innerHTML='<p style="text-align:center;color:var(--text3);padding:20px">Cargando fotos...</p>';
+  content.innerHTML=`
+  <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:60vh;gap:16px">
+    <div style="width:44px;height:44px;border:3px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:spin 0.8s linear infinite"></div>
+    <div style="font-size:13px;color:var(--text3)">Cargando fotos...</div>
+  </div>`;
   try{
     const isMobile=/iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
     const resp=await fetch(SHEET_URL+"?action=listPhotos&houseId="+houseId+"&stage="+stageId+"&mobile="+isMobile);
