@@ -788,7 +788,20 @@ function deleteArchived(idx){if(!confirm("¿Eliminar permanentemente?"))return;a
 function openCfg(){
   const isAdmin=currentUser&&currentUser.role==="admin";
   const isPro=currentUser&&currentUser.role==="pro";
-  document.getElementById("mroot").innerHTML=`<div class="mwrap"><div class="modal"><h3>Configuración</h3><div class="cfg-menu"><button class="cfg-menu-btn ${isPro||!isAdmin?"disabled":""}" onclick="${isPro||!isAdmin?"":" openCfgDashboard()"}"><div><div class="cfg-menu-btn-label">Dashboard</div><div class="cfg-menu-btn-sub">Subactividades, porcentajes y plazos</div></div><span class="cfg-menu-icon">›</span></button><button class="cfg-menu-btn ${isPro||!isAdmin?"disabled":""}" onclick="${isPro||!isAdmin?"":" openCfgDatabase()}"><div><div class="cfg-menu-btn-label">Base de datos</div><div class="cfg-menu-btn-sub">Conexión, sync y backups</div></div><span class="cfg-menu-icon">›</span></button><button class="cfg-menu-btn" onclick="openCfgUsers()"><div><div class="cfg-menu-btn-label">Usuarios</div><div class="cfg-menu-btn-sub">Gestión de cuentas y permisos</div></div><span class="cfg-menu-icon">›</span></button></div><div class="mbtns"><button class="btn-no" onclick="closeM()">Cerrar</button></div></div></div>`;
+  const dashDisabled=isPro||!isAdmin;
+  const dbDisabled=isPro||!isAdmin;
+  let html='<div class="mwrap"><div class="modal"><h3>Configuración</h3><div class="cfg-menu">';
+  html+='<button class="cfg-menu-btn'+(dashDisabled?' disabled':'')+'" '+(dashDisabled?'':'onclick="openCfgDashboard()"')+'>';
+  html+='<div><div class="cfg-menu-btn-label">Dashboard</div><div class="cfg-menu-btn-sub">Subactividades, porcentajes y plazos</div></div>';
+  html+='<span class="cfg-menu-icon">›</span></button>';
+  html+='<button class="cfg-menu-btn'+(dbDisabled?' disabled':'')+'" '+(dbDisabled?'':'onclick="openCfgDatabase()"')+'>';
+  html+='<div><div class="cfg-menu-btn-label">Base de datos</div><div class="cfg-menu-btn-sub">Conexión, sync y backups</div></div>';
+  html+='<span class="cfg-menu-icon">›</span></button>';
+  html+='<button class="cfg-menu-btn" onclick="openCfgUsers()">';
+  html+='<div><div class="cfg-menu-btn-label">Usuarios</div><div class="cfg-menu-btn-sub">Gestión de cuentas y permisos</div></div>';
+  html+='<span class="cfg-menu-icon">›</span></button>';
+  html+='</div><div class="mbtns"><button class="btn-no" onclick="closeM()">Cerrar</button></div></div></div>';
+  document.getElementById("mroot").innerHTML=html;
 }
 function openCfgDashboard(){
   const stagesCfg=[{id:1,label:"Etapa 1"},{id:2,label:"Etapa 2"},{id:3,label:"Etapa 3"}];
