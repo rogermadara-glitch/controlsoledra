@@ -294,7 +294,7 @@ input.fi::placeholder{color:var(--text3)}
         <div><div class="lobby-card-label">Configuración</div><div class="lobby-card-sub">Ajustes del sistema</div></div>
       </div>
     </div>
-    <div style="position:fixed;bottom:10px;right:10px;font-size:10px;color:var(--text3);font-weight:500;opacity:0.6">v11.4</div>
+    <div style="position:fixed;bottom:10px;right:10px;font-size:10px;color:var(--text3);font-weight:500;opacity:0.6">v11.5</div>
   </div>
 </div>
 <!-- DASHBOARD -->
@@ -354,7 +354,7 @@ input.fi::placeholder{color:var(--text3)}
 <div id="mroot"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 <script>
-const SHEET_URL="https://script.google.com/macros/s/AKfycbz0ekWu28bvry1e71gm7jx1uUK47UenyqK_8vI2UhYCHiQdv_phAiz8O8b35YW5foN6QA/exec";
+const SHEET_URL="https://script.google.com/macros/s/AKfycbytLsXqevEwNqJDDOxzz2WyOP9_ck5grPc0qWHJi2JQkcNZt-L4eoLA9V133atv1tKCwA/exec";
 const SYNC_MS=10000;
 const IVA_RATE=0.13;
 const SESSION_HOURS=12;
@@ -504,12 +504,10 @@ async function pushAll(){
   localVersion++;
   const payload=JSON.stringify({houses,archived,users,version:localVersion});
   try{
-    const formData=new URLSearchParams();
-    formData.append("action","save");
-    formData.append("payload",payload);
-    const resp=await fetch(url,{
+    const resp=await fetch(url+"?action=save",{
       method:"POST",
-      body:formData
+      body:payload,
+      headers:{"Content-Type":"text/plain;charset=utf-8"}
     });
     const txt=await resp.text();
     let data;try{data=JSON.parse(txt);}catch(e){data={status:"ok"};}
