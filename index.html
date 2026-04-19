@@ -1633,14 +1633,17 @@ async function showStagePhotos(houseId,stageId){
   title.textContent=stageName;
   backBtn.onclick=()=>{currentStagePhotos=null;fabsFotos.style.display="none";showHouseStages(houseId);};
   
+  content.innerHTML='<p style="text-align:center;color:var(--text3);padding:20px">Cargando fotos...</p>';
+  
   try{
     const isMobile=/iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
     const resp=await fetch(SHEET_URL+"?action=listPhotos&houseId="+houseId+"&stage="+stageId+"&mobile="+isMobile);
     const data=await resp.json();
     const photos=data.photos||[];
-alert("Fotos recibidas: " + photos.length + (photos.length > 0 ? "\nPrimera tiene base64: " + (photos[0].base64 ? "SI" : "NO") : ""));
-
-const limit=PHOTO_LIMITS[stageId]||20;
+    
+    const limit=PHOTO_LIMITS[stageId]||20;
+    
+    content.innerHTML="";
     
     if(photos.length>limit){
       const warning=document.createElement("div");
