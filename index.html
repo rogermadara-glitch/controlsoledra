@@ -331,7 +331,7 @@ input.fi::placeholder{color:var(--text3)}
         <div>
           <div class="lobby-card-label">Dashboard</div>
           <div class="lobby-card-sub">Seguimiento de etapas</div>
- <div style="position:fixed;bottom:10px;right:10px;font-size:10px;color:var(--text3);font-weight:500;opacity:0.6">v10.14</div>
+ <div style="position:fixed;bottom:10px;right:10px;font-size:10px;color:var(--text3);font-weight:500;opacity:0.6">v10.15</div>
         </div>
       </div>
 
@@ -1633,29 +1633,12 @@ async function showStagePhotos(houseId,stageId){
   title.textContent=stageName;
   backBtn.onclick=()=>{currentStagePhotos=null;fabsFotos.style.display="none";showHouseStages(houseId);};
   
-  const isMobile=/iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-content.innerHTML=`<p style="text-align:center;color:var(--text3);padding:20px">Cargando fotos...<br><span style="color:#0f0;font-size:10px">Mobile: ${isMobile}<br>UserAgent: ${navigator.userAgent.substring(0,50)}</span></p>`;
-  
   try{
     const isMobile=/iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
     const resp=await fetch(SHEET_URL+"?action=listPhotos&houseId="+houseId+"&stage="+stageId+"&mobile="+isMobile);
     const data=await resp.json();
     const photos=data.photos||[];
-
-// DEBUG: Mostrar info de las fotos
-const debugDiv=document.createElement("div");
-debugDiv.style.cssText="background:#1a1a1a;border:1px solid #0f0;padding:10px;margin:10px;font-size:11px;color:#0f0;word-break:break-all;max-height:200px;overflow:auto";
-debugDiv.innerHTML=`
-  <div>Total fotos: ${photos.length}</div>
-  ${photos.length>0?`
-    <div>Primera foto ID: ${photos[0].id}</div>
-    <div>Tiene base64: ${photos[0].base64?'SI':'NO'}</div>
-    <div>Tiene thumbnailUrl: ${photos[0].thumbnailUrl?'SI':'NO'}</div>
-    ${photos[0].base64?`<div>Base64 primeros 100 chars:<br>${photos[0].base64.substring(0,100)}</div>`:''}
-  `:'<div>No hay fotos</div>'}
-`;
-content.innerHTML="";
-content.appendChild(debugDiv);
+content.innerHTML='<p style="text-align:center;color:var(--text3);padding:20px">Cargando fotos...</p>';
 
 const limit=PHOTO_LIMITS[stageId]||20;
     
