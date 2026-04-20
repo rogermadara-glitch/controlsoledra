@@ -294,7 +294,7 @@ input.fi::placeholder{color:var(--text3)}
         <div><div class="lobby-card-label">Configuración</div><div class="lobby-card-sub">Ajustes del sistema</div></div>
       </div>
     </div>
-    <div style="position:fixed;bottom:10px;right:10px;font-size:10px;color:var(--text3);font-weight:500;opacity:0.6">v11.5</div>
+    <div style="position:fixed;bottom:10px;right:10px;font-size:10px;color:var(--text3);font-weight:500;opacity:0.6">v11.6</div>
   </div>
 </div>
 <!-- DASHBOARD -->
@@ -354,7 +354,7 @@ input.fi::placeholder{color:var(--text3)}
 <div id="mroot"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 <script>
-const SHEET_URL="https://script.google.com/macros/s/AKfycbytLsXqevEwNqJDDOxzz2WyOP9_ck5grPc0qWHJi2JQkcNZt-L4eoLA9V133atv1tKCwA/exec";
+const SHEET_URL="https://script.google.com/macros/s/AKfycbx4W6NICb0hCoh_d5S8C3pwp1O9VyZ6Si0SjwgEkihIWhZUtrGPkKpHxv8wa4qa-eRbNA/exec";
 const SYNC_MS=10000;
 const IVA_RATE=0.13;
 const SESSION_HOURS=12;
@@ -945,7 +945,7 @@ async function createHouseFolders(house){
 }
 async function loadPhotoStats(){
   const promises=houses.map(h=>
-    fetch(SHEET_URL+"?action=getPhotoStats&houseId="+h.id)
+   fetch((cfg.sheetUrl||SHEET_URL)+"?action=getPhotoStats
       .then(r=>r.json())
       .then(data=>{photoStats[h.id]=data;})
       .catch(()=>{photoStats[h.id]={stats:{1:0,2:0,3:0,5:0},total:0};})
@@ -1021,7 +1021,7 @@ async function showStagePhotos(houseId,stageId){
   </div>`;
   try{
     const isMobile=/iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    const resp=await fetch(SHEET_URL+"?action=listPhotos&houseId="+houseId+"&stage="+stageId+"&mobile="+isMobile);
+    const resp=await fetch((cfg.sheetUrl||SHEET_URL)+"?action=listPhotos&houseId="+houseId+"&stage="+stageId+"&mobile="+isMobile);
     const data=await resp.json();
     const photos=data.photos||[];
     const limit=PHOTO_LIMITS[stageId]||20;
@@ -1109,7 +1109,7 @@ async function uploadPhotos(files){
       formData.append("stage",currentStagePhotos.stageId);
       formData.append("fileData",base64);
       formData.append("fileName","foto_"+Date.now()+"_"+Math.random().toString(36).substr(2,9)+".jpg");
-      const resp=await fetch(SHEET_URL,{method:"POST",body:formData});
+      const resp=await fetch((cfg.sheetUrl||SHEET_URL),{method:"POST",body:formData});
       const data=await resp.json();
       if(data.status!=="ok")throw new Error(data.reason||"Error");
       uploaded++;
@@ -1124,7 +1124,7 @@ async function uploadPhotos(files){
 async function deletePhoto(photoId){
   if(!confirm("¿Eliminar esta foto?"))return;
   try{
-    const resp=await fetch(SHEET_URL+"?action=deletePhoto&photoId="+photoId);
+    const resp=await fetch((cfg.sheetUrl||SHEET_URL)+"?action=deletePhoto&photoId="+photoId);
     const data=await resp.json();
     if(data.status==="ok"){showToast("Foto eliminada");await loadPhotoStats();showStagePhotos(currentStagePhotos.houseId,currentStagePhotos.stageId);}
     else showToast("Error al eliminar","err");
@@ -1133,7 +1133,7 @@ async function deletePhoto(photoId){
 async function deleteHousePhotos(houseId){
   if(!confirm("¿Eliminar TODAS las fotos de esta casa de Drive?"))return;
   try{
-    const resp=await fetch(SHEET_URL+"?action=deleteHousePhotos&houseId="+houseId);
+    const resp=await fetch((cfg.sheetUrl||SHEET_URL)+"?action=deleteHousePhotos&houseId="+houseId);
     const data=await resp.json();
     if(data.status==="ok"){showToast("Fotos eliminadas de Drive");delete photoStats[houseId];localStorage.setItem("th9_photoStats",JSON.stringify(photoStats));}
     else showToast("Error al eliminar","err");
