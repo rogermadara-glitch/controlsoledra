@@ -230,6 +230,14 @@ input.fi::placeholder{color:var(--text3)}
 .photo-upload-opt.disabled{opacity:0.4;cursor:not-allowed}
 .photo-warning{background:var(--amber-dim);border:1px solid #FFB30040;color:var(--amber);font-size:12px;padding:10px 12px;border-radius:8px;margin-bottom:12px}
 @keyframes spin{to{transform:rotate(360deg)}}
+.upload-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.92);display:flex;align-items:center;justify-content:center;z-index:600;padding:20px}
+.upload-box{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-xl);padding:28px 24px;width:100%;max-width:340px;text-align:center}
+.upload-title{font-size:16px;font-weight:600;color:var(--text1);margin-bottom:6px}
+.upload-subtitle{font-size:12px;color:var(--text3);margin-bottom:20px}
+.upload-bar-bg{background:var(--card2);border-radius:20px;height:8px;overflow:hidden;margin-bottom:10px}
+.upload-bar-fill{background:var(--green);height:100%;border-radius:20px;transition:width 0.3s}
+.upload-pct{font-size:13px;font-weight:600;color:var(--green);margin-bottom:20px}
+.upload-cancel{padding:10px 24px;font-size:13px;font-weight:500;background:transparent;color:var(--text2);border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;font-family:'Inter',sans-serif}
 </style>
 </head>
 <body>
@@ -294,7 +302,7 @@ input.fi::placeholder{color:var(--text3)}
         <div><div class="lobby-card-label">Configuración</div><div class="lobby-card-sub">Ajustes del sistema</div></div>
       </div>
     </div>
-    <div style="position:fixed;bottom:10px;right:10px;font-size:10px;color:var(--text3);font-weight:500;opacity:0.6">v11.9</div>
+    <div style="position:fixed;bottom:10px;right:10px;font-size:10px;color:var(--text3);font-weight:500;opacity:0.6">v11.10</div>
   </div>
 </div>
 <!-- DASHBOARD -->
@@ -354,7 +362,7 @@ input.fi::placeholder{color:var(--text3)}
 <div id="mroot"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 <script>
-const SHEET_URL="https://script.google.com/macros/s/AKfycbwetMXEF2HPL8wr-WjCogH9hCP9lwAdOr5zg-RLcYpX3oyfHPX6gNs0TSw18-PbgtA7aA/exec";
+const SHEET_URL="https://script.google.com/macros/s/AKfycbwu-DaKIU8CPs3mV3wa73dbjZlL6kbaOGIdndQfuZpT0nRK_mwSPcLuuf2bY9QE3jhR-g/exec";
 const SYNC_MS=10000;
 const IVA_RATE=0.13;
 const SESSION_HOURS=12;
@@ -1012,7 +1020,7 @@ async function showStagePhotos(houseId,stageId){
   const backBtn=document.getElementById("fotos-back-btn");
   const fabsFotos=document.getElementById("fab-fotos-wrap");
   const stageName={1:"Etapa 1",2:"Etapa 2",3:"Etapa 3",5:"Garantías"}[stageId];
-  title.textContent=stageName;
+  title.textContent=house.name+" — "+stageName;
   backBtn.onclick=()=>{currentStagePhotos=null;fabsFotos.style.display="none";showHouseStages(houseId);};
   content.innerHTML=`
   <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:60vh;gap:16px">
@@ -1086,6 +1094,9 @@ function triggerFileSelect(){closeUploadOptsNow();document.getElementById("photo
 function closeUploadOptsNow(){const opts=document.getElementById("photo-upload-opts");if(opts)opts.remove();document.removeEventListener("click",closeUploadOpts);}
 document.getElementById("photo-camera-input").addEventListener("change",async function(e){if(e.target.files.length>0)await uploadPhotos([e.target.files[0]]);e.target.value="";});
 document.getElementById("photo-file-input").addEventListener("change",async function(e){if(e.target.files.length>0)await uploadPhotos(Array.from(e.target.files));e.target.value="";});
+
+let uploadCancelled=false;
+
 async function uploadPhotos(files){
   if(!currentStagePhotos)return;
   const MAX_SIZE=5*1024*1024;
@@ -1096,12 +1107,34 @@ async function uploadPhotos(files){
     validFiles.push(file);
   }
   if(validFiles.length===0)return;
-  showToast(`Subiendo ${validFiles.length} foto(s)...`,"info");
+
+  uploadCancelled=false;
+
+  // Mostrar overlay de carga
+  const overlay=document.createElement("div");
+  overlay.className="upload-overlay";
+  overlay.id="upload-overlay";
+  overlay.innerHTML=`
+    <div class="upload-box">
+      <div class="upload-title">Subiendo fotos</div>
+      <div class="upload-subtitle" id="upload-subtitle">0 de ${validFiles.length}</div>
+      <div class="upload-bar-bg"><div class="upload-bar-fill" id="upload-bar" style="width:0%"></div></div>
+      <div class="upload-pct" id="upload-pct">0%</div>
+      <button class="upload-cancel" onclick="uploadCancelled=true;document.getElementById('upload-overlay')?.remove()">Cancelar</button>
+    </div>`;
+  document.body.appendChild(overlay);
+
   let uploaded=0;
-  for(let file of validFiles){
+  for(let i=0;i<validFiles.length;i++){
+    if(uploadCancelled)break;
+    const file=validFiles[i];
     try{
       const reader=new FileReader();
-      const base64=await new Promise((resolve,reject)=>{reader.onload=()=>resolve(reader.result.split(',')[1]);reader.onerror=reject;reader.readAsDataURL(file);});
+      const base64=await new Promise((resolve,reject)=>{
+        reader.onload=()=>resolve(reader.result.split(',')[1]);
+        reader.onerror=reject;
+        reader.readAsDataURL(file);
+      });
       const formData=new URLSearchParams();
       formData.append("action","uploadPhoto");
       formData.append("houseId",currentStagePhotos.houseId);
@@ -1109,12 +1142,30 @@ async function uploadPhotos(files){
       formData.append("stage",currentStagePhotos.stageId);
       formData.append("fileData",base64);
       formData.append("fileName","foto_"+Date.now()+"_"+Math.random().toString(36).substr(2,9)+".jpg");
+
       const resp=await fetch((cfg.sheetUrl||SHEET_URL),{method:"POST",body:formData});
       const data=await resp.json();
       if(data.status!=="ok")throw new Error(data.reason||"Error");
       uploaded++;
-    }catch(e){showToast(`Error subiendo ${file.name}`,"err");}
+    }catch(e){
+      showToast(`Error subiendo ${file.name}`,"err");
+    }
+
+    // Actualizar barra de progreso
+    if(!uploadCancelled){
+      const pct=Math.round(((i+1)/validFiles.length)*100);
+      const bar=document.getElementById("upload-bar");
+      const pctEl=document.getElementById("upload-pct");
+      const sub=document.getElementById("upload-subtitle");
+      if(bar)bar.style.width=pct+"%";
+      if(pctEl)pctEl.textContent=pct+"%";
+      if(sub)sub.textContent=`${i+1} de ${validFiles.length}`;
+    }
   }
+
+  // Cerrar overlay
+  document.getElementById("upload-overlay")?.remove();
+
   if(uploaded>0){
     showToast(`${uploaded} foto(s) subida(s) ✓`);
     await loadPhotoStats();
