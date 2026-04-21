@@ -334,7 +334,7 @@ input.fi::placeholder{color:var(--text3)}
         <div><div class="lobby-card-label">Configuración</div><div class="lobby-card-sub">Ajustes del sistema</div></div>
       </div>
     </div>
-    <div style="position:fixed;bottom:10px;right:10px;font-size:10px;color:var(--text3);font-weight:500;opacity:0.6">v13.5</div>
+    <div style="position:fixed;bottom:10px;right:10px;font-size:10px;color:var(--text3);font-weight:500;opacity:0.6">v13.6</div>
   </div>
 </div>
 <!-- DASHBOARD -->
@@ -695,26 +695,26 @@ function buildCard(house,st){
 function buildSubs(house,st){
   const wrap=document.createElement("div");wrap.className="sub-scroll";
   const isPro=currentUser&&currentUser.role==="pro";
-  if(st.type==="start"){
-    const t=mkTbl(["Subactividad","✓","Fecha"],[55,12,33]);const tb=document.createElement("tbody");
-    st.subs.forEach((name,i)=>{
-      const e=(house.subs[0]||{})[i]||{};const tr=document.createElement("tr");
-     tr.innerHTML=`<td>Ret.</td><td><input type="checkbox" ${e.done?"checked":""} data-h="${house.id}" data-s="4" data-i="0" class="ck"/></td><td>${isPro?"—":`<span class="ret-amt">₡${fm(retAmt)}</span>`}</td><td>${badge}</td><td class="dt">${fd(e.doneAt)}</td>`;
-     tb.appendChild(tr);
-    });
-    t.appendChild(tb);
-    bindChecks(t,(h)=>{
-  if((h.subs[0]||{})[0]&&h.subs[0][0].done){
-    if(confirm(`¿Confirmás que ${h.name} está lista para pasar a Etapa 1?`)){
-      h.stage=1;if(!h.stageDate)h.stageDate={};h.stageDate[1]=Date.now();
-    }else{
-      h.subs[0][0]={...h.subs[0][0],done:false,doneAt:null};
+ if(st.type==="start"){
+  const t=mkTbl(["Subactividad","✓","Fecha"],[55,12,33]);const tb=document.createElement("tbody");
+  st.subs.forEach((name,i)=>{
+    const e=(house.subs[0]||{})[i]||{};const tr=document.createElement("tr");
+    tr.innerHTML=`<td>${name}</td><td><input type="checkbox" ${e.done?"checked":""} data-h="${house.id}" data-s="0" data-i="${i}" class="ck"/></td><td class="dt">${fd(e.doneAt)}</td>`;
+    tb.appendChild(tr);
+  });
+  t.appendChild(tb);
+  bindChecks(t,(h)=>{
+    if((h.subs[0]||{})[0]&&h.subs[0][0].done){
+      if(confirm(`¿Confirmás que ${h.name} está lista para pasar a Etapa 1?`)){
+        h.stage=1;if(!h.stageDate)h.stageDate={};h.stageDate[1]=Date.now();
+      }else{
+        h.subs[0][0]={...h.subs[0][0],done:false,doneAt:null};
+      }
     }
-  }
-  save();pushAll();renderAll();
-});
-    wrap.appendChild(t);return wrap;
-  }
+    save();pushAll();renderAll();
+  });
+  wrap.appendChild(t);return wrap;
+}
   if(st.type==="normal"){
     const subs=getSubsForStage(st.id),pi=pagoIdx(st.id);
     const pagoAmt=Math.round((house.contractAmount||0)*(cfg.pct[st.id]||0)/100);
