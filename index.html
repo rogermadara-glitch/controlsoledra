@@ -326,7 +326,7 @@ input.fi::placeholder{color:var(--text3)}
         <div><div class="lobby-card-label">Configuración</div><div class="lobby-card-sub">Ajustes del sistema</div></div>
       </div>
     </div>
-    <div style="position:fixed;bottom:10px;right:10px;font-size:10px;color:var(--text3);font-weight:500;opacity:0.6">v12.3</div>
+    <div style="position:fixed;bottom:10px;right:10px;font-size:10px;color:var(--text3);font-weight:500;opacity:0.6">v12.4</div>
   </div>
 </div>
 <!-- DASHBOARD -->
@@ -1128,7 +1128,7 @@ async function showStagePhotos(houseId,stageId){
           const thumbDiv=document.createElement("div");thumbDiv.className="photo-list-thumb";
           item.appendChild(thumbDiv);
           const info=document.createElement("div");info.className="photo-list-info";
-          info.innerHTML=`<div class="photo-list-name">${p.name}</div><div class="photo-list-meta">👤 ${meta.user} · 📅 ${meta.date}</div>`;
+          info.innerHTML=`<div class="photo-list-meta" style="margin-top:0">👤 ${meta.user} · 📅 ${meta.date}</div>`;
           item.appendChild(info);
           if(canDelete){
             const delBtn=document.createElement("button");delBtn.className="photo-list-del";
