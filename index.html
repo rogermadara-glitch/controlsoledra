@@ -326,7 +326,7 @@ input.fi::placeholder{color:var(--text3)}
         <div><div class="lobby-card-label">Configuración</div><div class="lobby-card-sub">Ajustes del sistema</div></div>
       </div>
     </div>
-    <div style="position:fixed;bottom:10px;right:10px;font-size:10px;color:var(--text3);font-weight:500;opacity:0.6">v12.4</div>
+    <div style="position:fixed;bottom:10px;right:10px;font-size:10px;color:var(--text3);font-weight:500;opacity:0.6">v12.5</div>
   </div>
 </div>
 <!-- DASHBOARD -->
@@ -1088,9 +1088,10 @@ async function showStagePhotos(houseId,stageId){
       warning.textContent=`⚠️ Esta etapa tiene ${photos.length} fotos (límite recomendado: ${limit})`;
       content.appendChild(warning);
     }
-    if(photos.length===0){
-      content.innerHTML='<p style="text-align:center;color:var(--text3);padding:40px">No hay fotos en esta etapa</p>';
-    }else{
+    fabsFotos.style.display="flex";
+if(photos.length===0){
+  content.innerHTML='<p style="text-align:center;color:var(--text3);padding:40px">No hay fotos en esta etapa</p>';
+}else{
       const container=document.createElement("div");
       container.id="photo-container";
       container.className=photoView==="grid"?"photo-grid":"photo-list";
