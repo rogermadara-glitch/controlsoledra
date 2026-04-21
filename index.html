@@ -1091,70 +1091,71 @@ async function showStagePhotos(houseId,stageId){
     if(photos.length===0){
       content.innerHTML='<p style="text-align:center;color:var(--text3);padding:40px">No hay fotos en esta etapa</p>';
     }else{
-  const container=document.createElement("div");
-  container.id="photo-container";
-  container.className=photoView==="grid"?"photo-grid":"photo-list";
-  content.appendChild(container);
-  fabsFotos.style.display="flex";
-
-  for(const p of photos){
-    const canDelete=currentUser&&currentUser.role==="admin";
-    const meta=parsePhotoMeta(p.name);
-
-    if(photoView==="grid"){
-      const thumb=document.createElement("div");thumb.className="photo-thumb";
-      thumb.innerHTML='<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:var(--card2)"><div style="width:24px;height:24px;border:2px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:spin 0.8s linear infinite"></div></div>';
-      container.appendChild(thumb);
-      fetch((cfg.sheetUrl||SHEET_URL)+"?action=getPhoto&photoId="+p.id+"&mobile="+isMobile)
-        .then(r=>r.json())
-        .then(photoData=>{
-          const imgSrc=photoData.base64||photoData.thumbnailUrl;
-          const img=document.createElement("img");
-          img.style.opacity="0";img.style.transition="opacity 0.3s";
-          img.onload=function(){this.style.opacity="1";};
-          img.src=imgSrc;
-          thumb.innerHTML="";thumb.appendChild(img);
-          thumb.onclick=()=>openLightbox(imgSrc);
+      const container=document.createElement("div");
+      container.id="photo-container";
+      container.className=photoView==="grid"?"photo-grid":"photo-list";
+      content.appendChild(container);
+      fabsFotos.style.display="flex";
+      for(const p of photos){
+        const canDelete=currentUser&&currentUser.role==="admin";
+        const meta=parsePhotoMeta(p.name);
+        if(photoView==="grid"){
+          const thumb=document.createElement("div");thumb.className="photo-thumb";
+          thumb.innerHTML='<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:var(--card2)"><div style="width:24px;height:24px;border:2px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:spin 0.8s linear infinite"></div></div>';
+          container.appendChild(thumb);
+          fetch((cfg.sheetUrl||SHEET_URL)+"?action=getPhoto&photoId="+p.id+"&mobile="+isMobile)
+            .then(r=>r.json())
+            .then(photoData=>{
+              const imgSrc=photoData.base64||photoData.thumbnailUrl;
+              const img=document.createElement("img");
+              img.style.opacity="0";img.style.transition="opacity 0.3s";
+              img.onload=function(){this.style.opacity="1";};
+              img.src=imgSrc;
+              thumb.innerHTML="";thumb.appendChild(img);
+              thumb.onclick=()=>openLightbox(imgSrc);
+              if(canDelete){
+                const delBtn=document.createElement("button");delBtn.className="photo-thumb-del";
+                delBtn.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>';
+                delBtn.onclick=function(e){e.stopPropagation();deletePhoto(p.id);};
+                thumb.appendChild(delBtn);
+              }
+            })
+            .catch(()=>{
+              thumb.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100%;background:#222"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>';
+            });
+        }else{
+          const item=document.createElement("div");item.className="photo-list-item";
+          const thumbDiv=document.createElement("div");thumbDiv.className="photo-list-thumb";
+          item.appendChild(thumbDiv);
+          const info=document.createElement("div");info.className="photo-list-info";
+          info.innerHTML=`<div class="photo-list-name">${p.name}</div><div class="photo-list-meta">👤 ${meta.user} · 📅 ${meta.date}</div>`;
+          item.appendChild(info);
           if(canDelete){
-            const delBtn=document.createElement("button");delBtn.className="photo-thumb-del";
+            const delBtn=document.createElement("button");delBtn.className="photo-list-del";
             delBtn.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>';
             delBtn.onclick=function(e){e.stopPropagation();deletePhoto(p.id);};
-            thumb.appendChild(delBtn);
+            item.appendChild(delBtn);
           }
-        })
-        .catch(()=>{
-          thumb.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100%;background:#222"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>';
-        });
-    }else{
-      const item=document.createElement("div");item.className="photo-list-item";
-      const thumbDiv=document.createElement("div");thumbDiv.className="photo-list-thumb";
-      item.appendChild(thumbDiv);
-      const info=document.createElement("div");info.className="photo-list-info";
-      info.innerHTML=`<div class="photo-list-name">${p.name}</div><div class="photo-list-meta">👤 ${meta.user} · 📅 ${meta.date}</div>`;
-      item.appendChild(info);
-      if(canDelete){
-        const delBtn=document.createElement("button");delBtn.className="photo-list-del";
-        delBtn.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>';
-        delBtn.onclick=function(e){e.stopPropagation();deletePhoto(p.id);};
-        item.appendChild(delBtn);
+          container.appendChild(item);
+          fetch((cfg.sheetUrl||SHEET_URL)+"?action=getPhoto&photoId="+p.id+"&mobile="+isMobile)
+            .then(r=>r.json())
+            .then(photoData=>{
+              const imgSrc=photoData.base64||photoData.thumbnailUrl;
+              const img=document.createElement("img");
+              img.style.opacity="0";img.style.transition="opacity 0.3s";
+              img.onload=function(){this.style.opacity="1";};
+              img.src=imgSrc;
+              thumbDiv.appendChild(img);
+              item.onclick=()=>openLightbox(imgSrc);
+            })
+            .catch(()=>{});
+        }
       }
-      container.appendChild(item);
-      fetch((cfg.sheetUrl||SHEET_URL)+"?action=getPhoto&photoId="+p.id+"&mobile="+isMobile)
-        .then(r=>r.json())
-        .then(photoData=>{
-          const imgSrc=photoData.base64||photoData.thumbnailUrl;
-          const img=document.createElement("img");
-          img.style.opacity="0";img.style.transition="opacity 0.3s";
-          img.onload=function(){this.style.opacity="1";};
-          img.src=imgSrc;
-          thumbDiv.appendChild(img);
-          item.onclick=()=>openLightbox(imgSrc);
-        })
-        .catch(()=>{});
     }
+  }catch(e){
+    content.innerHTML='<p style="text-align:center;color:var(--red);padding:20px">Error al cargar fotos</p>';
   }
 }
- }
 
 function openLightbox(url){document.getElementById("lightbox-img").src=url;document.getElementById("photo-lightbox").style.display="block";}
 function closeLightbox(){document.getElementById("photo-lightbox").style.display="none";}
@@ -1331,6 +1332,7 @@ function parsePhotoMeta(filename){
   }
   return{user,date};
 }
+
 </script>
 </body>
 </html>
