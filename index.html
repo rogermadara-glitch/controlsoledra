@@ -315,7 +315,7 @@ input.fi::placeholder{color:var(--text3)}
         <div><div class="lobby-card-label">Configuración</div><div class="lobby-card-sub">Ajustes del sistema</div></div>
       </div>
     </div>
-    <div style="position:fixed;bottom:10px;right:10px;font-size:10px;color:var(--text3);font-weight:500;opacity:0.6">v12.1</div>
+    <div style="position:fixed;bottom:10px;right:10px;font-size:10px;color:var(--text3);font-weight:500;opacity:0.6">v12.2</div>
   </div>
 </div>
 <!-- DASHBOARD -->
@@ -427,6 +427,7 @@ function checkSession(){
     currentUser=user;return true;
   }catch(e){return false;}
 }
+
 function saveSession(email){localStorage.setItem("th9_session",JSON.stringify({email,loginAt:Date.now()}));}
 function clearSession(){localStorage.removeItem("th9_session");currentUser=null;}
 function attemptLogin(){
@@ -441,7 +442,14 @@ function attemptLogin(){
   document.getElementById("welcome-name").textContent=user.name;
   document.getElementById("welcome-modal").style.display="flex";
 }
-function closeWelcome(){document.getElementById("welcome-modal").style.display="none";showScreen("screen-lobby");applyRolePermissions();}
+
+function closeWelcome(){
+  document.getElementById("welcome-modal").style.display="none";
+  showScreen("screen-lobby");
+  applyRolePermissions();
+  preloadPhotoStats();
+}
+
 function showForgotPassword(){alert("Contactate con el administrador para restablecer tu contraseña.");}
 function togglePassword(inputId,btn){
   const inp=document.getElementById(inputId);
@@ -449,6 +457,7 @@ function togglePassword(inputId,btn){
   if(inp.type==="password"){inp.type="text";eyeOpen.style.display="none";eyeClosed.style.display="block";}
   else{inp.type="password";eyeOpen.style.display="block";eyeClosed.style.display="none";}
 }
+
 function logout(){if(!confirm("¿Cerrar sesión?"))return;clearSession();location.reload();}
 function applyRolePermissions(){
   if(!currentUser)return;
@@ -476,10 +485,12 @@ function showToast(msg,type){
   t.textContent=msg;t.className="toast show"+(type?" "+type:"");
   clearTimeout(t._t);t._t=setTimeout(()=>{t.className="toast";},2800);
 }
+
 function setSyncStatus(state,text){
   const el=document.getElementById("sync-indicator");
   if(!el)return;el.className="sync-pill sync-"+state;el.textContent=text;
 }
+
 function showScreen(id){
   document.querySelectorAll(".screen").forEach(s=>{s.classList.add("hidden");});
   const target=document.getElementById(id);
@@ -493,6 +504,11 @@ function showScreen(id){
   if(id==="screen-dashboard"){updateTopTitle();}
   if(id==="screen-fotos"){currentHousePhotos=null;currentStagePhotos=null;renderPhotosList();}
 }
+
+function preloadPhotoStats(){
+  if(houses.length>0)loadPhotoStats().catch(()=>{});
+}
+
 function getSubsForStage(sid){return cfg.subs[sid]||[];}
 function pagoIdx(sid){const s=getSubsForStage(sid);for(let i=s.length-1;i>=0;i--){if(s[i].sign===1)return i;}return s.length-1;}
 function getMoForStage(house,sid){return Math.round((house.moAmount||0)*(cfg.pct[sid]||0)/100);}
@@ -954,6 +970,7 @@ if(checkSession()){
   renderAll();
   pullFromSheets(true).then(()=>setSyncStatus("ok","✓ Sync"));
   startAutoSync();
+  preloadPhotoStats();
 }
 document.addEventListener("visibilitychange",()=>{
   if(document.visibilityState==="visible"){pullFromSheets(false);startAutoSync();}
