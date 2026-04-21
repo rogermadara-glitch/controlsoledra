@@ -334,7 +334,7 @@ input.fi::placeholder{color:var(--text3)}
         <div><div class="lobby-card-label">Configuración</div><div class="lobby-card-sub">Ajustes del sistema</div></div>
       </div>
     </div>
-    <div style="position:fixed;bottom:10px;right:10px;font-size:10px;color:var(--text3);font-weight:500;opacity:0.6">v13.1</div>
+    <div style="position:fixed;bottom:10px;right:10px;font-size:10px;color:var(--text3);font-weight:500;opacity:0.6">v13.2</div>
   </div>
 </div>
 <!-- DASHBOARD -->
@@ -663,7 +663,7 @@ function buildCard(house,st){
     balHtml=`<div class="bal-grid"><div class="bal-item accent-blue"><div class="bal-lbl">Avance contrato</div><div class="bal-val blue">₡${fm(f.pago)}</div></div><div class="bal-item accent-green"><div class="bal-lbl">MO etapa (${cfg.pct[st.id]||0}%)</div><div class="bal-val green">₡${fm(f.mo)}</div></div><div class="bal-item"><div class="bal-lbl">Costos etapa</div><div class="bal-val muted">₡${fm(f.costs)}</div></div><div class="bal-item accent-amber"><div class="bal-lbl">IVA a pagar</div><div class="bal-val amber">₡${fm(f.ivaNeto)}</div></div><div class="bal-item"><div class="bal-lbl">Balance bruto</div><div class="bal-val ${f.bruto>=0?"green":"red"}">₡${fm(f.bruto)}</div></div><div class="bal-item ${f.real>=0?"accent-green":"accent-red"}"><div class="bal-lbl">Balance real etapa</div><div class="bal-val big ${f.real>=0?"green":"red"}">₡${fm(f.real)}</div></div><div class="bal-item full"><div class="bal-lbl">Balance real acumulado</div><div class="bal-val big ${acc.totalReal>=0?"green":"red"}">₡${fm(acc.totalReal)}</div></div></div>`;
   }else if(st.type==="retention"){
     const retAmt=Math.round((house.contractAmount||0)*(cfg.pct[4]||5)/100);
-    balHtml=`<div class="bal-grid"><div class="bal-item accent-amber"><div class="bal-lbl">Retención a cobrar</div><div class="bal-val amber big">₡${fm(retAmt)}</div></div><div class="bal-item"><div class="bal-lbl">Balance bruto acum.</div><div class="bal-val ${acc.totalBruto>=0?"green":"red"}">₡${fm(acc.totalBruto)}</div></div><div class="bal-item"><div class="bal-lbl">IVA total a pagar</div><div class="bal-val amber">₡${fm(acc.totalIvaNeto)}</div></div><div class="bal-item ${acc.totalReal>=0?"accent-green":"accent-red"}"><div class="bal-lbl">Balance real acum.</div><div class="bal-val big ${acc.totalReal>=0?"green":"red"}">₡${fm(acc.totalReal)}</div></div></div>`;
+    balHtml=isPro?"":`<div class="bal-grid"><div class="bal-item accent-amber"><div class="bal-lbl">Retención a cobrar</div><div class="bal-val amber big">₡${fm(retAmt)}</div></div><div class="bal-item"><div class="bal-lbl">Balance bruto acum.</div><div class="bal-val ${acc.totalBruto>=0?"green":"red"}">₡${fm(acc.totalBruto)}</div></div><div class="bal-item"><div class="bal-lbl">IVA total a pagar</div><div class="bal-val amber">₡${fm(acc.totalIvaNeto)}</div></div><div class="bal-item ${acc.totalReal>=0?"accent-green":"accent-red"}"><div class="bal-lbl">Balance real acum.</div><div class="bal-val big ${acc.totalReal>=0?"green":"red"}">₡${fm(acc.totalReal)}</div></div></div>`;
   }else if(st.type==="warranty"){
     balHtml=`<div class="bal-grid"><div class="bal-item full"><div class="bal-lbl">Contrato con IVA</div><div class="bal-val">₡${fm(house.contractAmount)}</div></div><div class="bal-item ${acc.totalReal>=0?"accent-green":"accent-red"}"><div class="bal-lbl">Balance real acum.</div><div class="bal-val big ${acc.totalReal>=0?"green":"red"}">₡${fm(acc.totalReal)}</div></div></div>`;
   }else{
@@ -699,8 +699,8 @@ function buildSubs(house,st){
     const t=mkTbl(["Subactividad","✓","Fecha"],[55,12,33]);const tb=document.createElement("tbody");
     st.subs.forEach((name,i)=>{
       const e=(house.subs[0]||{})[i]||{};const tr=document.createElement("tr");
-      tr.innerHTML=`<td>${name}</td><td><input type="checkbox" ${e.done?"checked":""} data-h="${house.id}" data-s="0" data-i="${i}" class="ck"/></td><td class="dt">${fd(e.doneAt)}</td>`;
-      tb.appendChild(tr);
+     tr.innerHTML=`<td>Ret.</td><td><input type="checkbox" ${e.done?"checked":""} data-h="${house.id}" data-s="4" data-i="0" class="ck"/></td><td>${isPro?"—":`<span class="ret-amt">₡${fm(retAmt)}</span>`}</td><td>${badge}</td><td class="dt">${fd(e.doneAt)}</td>`;
+     tb.appendChild(tr);
     });
     t.appendChild(tb);
     bindChecks(t,(h)=>{
