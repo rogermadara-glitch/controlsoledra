@@ -3,6 +3,12 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Control Soledra"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='192' height='192' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='40' fill='%2300C853'/%3E%3Cpath d='M40 96l56-44 56 44v68a12 12 0 0 1-12 12H52a12 12 0 0 1-12-12z' fill='none' stroke='%23000' stroke-width='10' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpolyline points='80,164 80,116 112,116 112,164' fill='none' stroke='%23000' stroke-width='10' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"/>
+<link rel="manifest" href="data:application/json,{&quot;name&quot;:&quot;Control Soledra&quot;,&quot;short_name&quot;:&quot;Soledra&quot;,&quot;display&quot;:&quot;standalone&quot;,&quot;background_color&quot;:&quot;%230a0a0a&quot;,&quot;theme_color&quot;:&quot;%2300C853&quot;,&quot;icons&quot;:[{&quot;src&quot;:&quot;https://via.placeholder.com/192x192/00C853/000000?text=CS&quot;,&quot;sizes&quot;:&quot;192x192&quot;,&quot;type&quot;:&quot;image/png&quot;}]}"/>
 <title>Control Soledra</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
@@ -241,6 +247,7 @@ input.fi::placeholder{color:var(--text3)}
 </style>
 </head>
 <body>
+
 <!-- LOGIN -->
 <div class="login-overlay" id="login-screen">
   <div class="login-box">
@@ -266,6 +273,7 @@ input.fi::placeholder{color:var(--text3)}
     <div id="login-error" class="login-error" style="display:none"></div>
   </div>
 </div>
+
 <!-- WELCOME -->
 <div class="welcome-overlay" id="welcome-modal" style="display:none">
   <div class="welcome-box">
@@ -275,10 +283,15 @@ input.fi::placeholder{color:var(--text3)}
     <button class="welcome-btn" onclick="closeWelcome()">Continuar</button>
   </div>
 </div>
+
 <!-- LOBBY -->
 <div class="screen hidden" id="screen-lobby">
   <div class="lobby" style="height:100%;overflow-y:auto">
-    <div class="lobby-header">
+    <div class="lobby-header" style="position:relative">
+  <button id="fullscreen-btn" onclick="toggleFullscreen()" style="position:absolute;top:0;right:0;background:transparent;border:none;cursor:pointer;padding:8px;color:var(--text3)">
+    <svg id="fs-expand" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+    <svg id="fs-compress" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="display:none"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/></svg>
+  </button>
       <div class="lobby-logo"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
       <div class="lobby-title">Control<br/>Soledra</div>
       <div class="lobby-sub">Gestión de techos y hojalatería</div>
@@ -302,7 +315,7 @@ input.fi::placeholder{color:var(--text3)}
         <div><div class="lobby-card-label">Configuración</div><div class="lobby-card-sub">Ajustes del sistema</div></div>
       </div>
     </div>
-    <div style="position:fixed;bottom:10px;right:10px;font-size:10px;color:var(--text3);font-weight:500;opacity:0.6">v11.12</div>
+    <div style="position:fixed;bottom:10px;right:10px;font-size:10px;color:var(--text3);font-weight:500;opacity:0.6">v12.1</div>
   </div>
 </div>
 <!-- DASHBOARD -->
@@ -1184,6 +1197,7 @@ async function uploadPhotos(files){
     await showStagePhotos(currentStagePhotos.houseId,currentStagePhotos.stageId);
   }
 }
+
 async function deletePhoto(photoId){
   if(!confirm("¿Eliminar esta foto?"))return;
   try{
@@ -1193,6 +1207,7 @@ async function deletePhoto(photoId){
     else showToast("Error al eliminar","err");
   }catch(e){showToast("Error de conexión","err");}
 }
+
 async function deleteHousePhotos(houseId){
   if(!confirm("¿Eliminar TODAS las fotos de esta casa de Drive?"))return;
   try{
@@ -1202,6 +1217,31 @@ async function deleteHousePhotos(houseId){
     else showToast("Error al eliminar","err");
   }catch(e){showToast("Error de conexión","err");}
 }
+
+function toggleFullscreen(){
+  const expand=document.getElementById("fs-expand");
+  const compress=document.getElementById("fs-compress");
+  if(!document.fullscreenElement){
+    document.documentElement.requestFullscreen().then(()=>{
+      expand.style.display="none";compress.style.display="block";
+    }).catch(()=>{});
+  }else{
+    document.exitFullscreen().then(()=>{
+      expand.style.display="block";compress.style.display="none";
+    }).catch(()=>{});
+  }
+}
+document.addEventListener("fullscreenchange",()=>{
+  const expand=document.getElementById("fs-expand");
+  const compress=document.getElementById("fs-compress");
+  if(!expand||!compress)return;
+  if(document.fullscreenElement){
+    expand.style.display="none";compress.style.display="block";
+  }else{
+    expand.style.display="block";compress.style.display="none";
+  }
+});
+
 </script>
 </body>
 </html>
