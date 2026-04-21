@@ -1154,10 +1154,8 @@ async function showStagePhotos(houseId,stageId){
     }
   }
 }
-  catch(e){
-    content.innerHTML='<p style="text-align:center;color:var(--red);padding:20px">Error al cargar fotos</p>';
-  }
-}
+ }
+
 function openLightbox(url){document.getElementById("lightbox-img").src=url;document.getElementById("photo-lightbox").style.display="block";}
 function closeLightbox(){document.getElementById("photo-lightbox").style.display="none";}
 function photosBack(){
@@ -1333,7 +1331,6 @@ function parsePhotoMeta(filename){
   }
   return{user,date};
 }
-
 </script>
 </body>
 </html>
