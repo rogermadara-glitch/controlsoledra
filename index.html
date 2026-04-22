@@ -86,7 +86,7 @@ html,body{background:#0a0a0a;color:#e8e8e8;font-family:'Inter',system-ui,sans-se
 .stage-pill.active{color:var(--green);border-color:var(--green);background:var(--green-dim)}
 .slides-outer{flex:1;overflow:hidden;position:relative}
 .slides-track{display:flex;height:100%;transition:transform 0.35s cubic-bezier(.4,0,.2,1);will-change:transform}
-.slide{width:100vw;height:100%;flex-shrink:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px 14px 120px 14px;margin-left:56px;width:calc(100vw - 56px)}
+.slide{width:calc(100vw - 56px);height:100%;flex-shrink:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px 14px 120px 14px}
 .col-hdr{margin-bottom:14px}
 .col-hdr-row{display:flex;align-items:center;gap:8px;margin-bottom:10px}
 .col-badge{font-size:12px;font-weight:600;padding:5px 12px;border-radius:20px;white-space:nowrap;letter-spacing:-0.2px}
@@ -340,7 +340,7 @@ input.fi::placeholder{color:var(--text3)}
         <div><div class="lobby-card-label">Configuración</div><div class="lobby-card-sub">Ajustes del sistema</div></div>
       </div>
     </div>
-    <div style="position:fixed;bottom:10px;right:10px;font-size:10px;color:var(--text3);font-weight:500;opacity:0.6">v14.1</div>
+    <div style="position:fixed;bottom:10px;right:10px;font-size:10px;color:var(--text3);font-weight:500;opacity:0.6">v14.2</div>
   </div>
 </div>
 <!-- DASHBOARD -->
@@ -659,7 +659,7 @@ function startAutoSync(){if(syncTimer)clearInterval(syncTimer);syncTimer=setInte
 function goToSlide(idx,smooth){
   currentSlide=Math.max(0,Math.min(STAGES.length-1,idx));
   const track=document.getElementById("slides-track");
-  if(track){track.style.transition=smooth===false?"none":"transform 0.35s cubic-bezier(.4,0,.2,1)";track.style.transform=`translateX(calc(-${currentSlide} * 100vw))`;}
+  if(track){track.style.transition=smooth===false?"none":"transform 0.35s cubic-bezier(.4,0,.2,1)";track.style.transform=`translateX(calc(-${currentSlide} * (100vw - 56px)))`;}
   updateStageBar();updateTopTitle();
 }
 function updateStageBar(){
@@ -903,13 +903,15 @@ function setupSwipe(){
     if(!blocked&&Math.abs(dy)>Math.abs(dx)*1.2){isDragging=false;return;}
     if(Math.abs(dx)>8)blocked=true;if(!blocked)return;
     const track=document.getElementById("slides-track");
-    if(track){track.style.transition="none";track.style.transform=`translateX(${-(startSlide*window.innerWidth-dx)}px)`;}
+    if(track){track.style.transition="none";
+    const slideWidth=window.innerWidth-56;
+track.style.transform=`translateX(${-(startSlide*slideWidth-dx)}px)`;}
   },{passive:true});
   outer.addEventListener("touchend",e=>{
     if(!isDragging)return;isDragging=false;if(!blocked)return;
     const dx=e.changedTouches[0].clientX-startX;
     const dt=Math.max((Date.now()-startTime)/1000,0.01);
-    const vel=Math.abs(dx)/dt/window.innerWidth;
+    const vel=Math.abs(dx)/dt/(window.innerWidth-56);
     const track=document.getElementById("slides-track");
     if(track)track.style.transition="transform 0.35s cubic-bezier(.4,0,.2,1)";
     if(Math.abs(dx)>50||vel>0.25){if(dx<0)goToSlide(startSlide+1);else goToSlide(startSlide-1);}
