@@ -365,7 +365,7 @@ input.fi::placeholder{color:var(--text3)}
     </div>
     <div style="position:fixed;bottom:10px;right:10px;text-align:right">
   <div id="lobby-user-name" style="font-size:11px;color:var(--text2);font-weight:500;margin-bottom:2px"></div>
-  <div style="font-size:10px;color:var(--text3);font-weight:500;opacity:0.6">v15.6</div>
+  <div style="font-size:10px;color:var(--text3);font-weight:500;opacity:0.6">v15.7</div>
 </div>
   </div>
 </div>
@@ -1999,6 +1999,50 @@ function guardarFechaCheck(houseId,stageId,subIdx){
   house.subs[stageId][subIdx].doneAt=new Date(nuevaFecha).getTime();
   save();pushAll();closeM();renderAll();
   showToast("Fecha actualizada");
+}
+
+function openEditHouse(houseId){
+  const house=houses.find(h=>h.id===houseId);if(!house)return;
+  const etapaActual=house.stage;
+  let subsHtml="";
+  if(etapaActual>0){
+    [1,2,3].forEach(sid=>{
+      if(sid>=etapaActual)return;
+      const subs=getSubsForStage(sid);
+      const pi=pagoIdx(sid);
+      subsHtml+=`<div style="margin-top:16px">
+        <div style="font-size:12px;font-weight:600;color:var(--green);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.3px">Etapa ${sid}</div>`;
+      subs.forEach((sub,i)=>{
+        const e=(house.subs[sid]||{})[i]||{};
+        const isPago=i===pi;
+        const monto=isPago?Math.round((house.contractAmount||0)*(cfg.pct[sid]||0)/100):(parseFloat(e.cost||0)||0);
+        subsHtml+=`<div style="background:var(--card2);border-radius:8px;padding:10px 12px;margin-bottom:6px;border:1px solid var(--border)">
+          <div style="font-size:12px;color:var(--text2);margin-bottom:6px">${sub.name}</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            ${isPago?`<div style="grid-column:1/-1"><div style="font-size:11px;color:var(--text3);margin-bottom:3px">Monto (automático)</div><div style="font-size:13px;font-weight:600;color:var(--blue)">₡${fm(monto)}</div></div>`:`<div><div style="font-size:11px;color:var(--text3);margin-bottom:3px">Monto (₡)</div><input class="fi" type="number" id="edit-sub-${sid}-${i}" value="${e.cost||""}" placeholder="0" style="padding:6px 8px;font-size:12px"/></div>`}
+            <div><div style="font-size:11px;color:var(--text3);margin-bottom:3px">Fecha check</div><input class="fi" type="date" id="edit-fecha-${sid}-${i}" value="${e.doneAt?new Date(e.doneAt).toISOString().split('T')[0]:""}" style="padding:6px 8px;font-size:12px"/></div>
+          </div>
+        </div>`;
+      });
+      subsHtml+=`</div>`;
+    });
+  }
+  document.getElementById("mroot").innerHTML=`
+    <div class="mwrap"><div class="modal" style="max-height:85vh;overflow-y:auto">
+      <button class="modal-back" onclick="openEditHouseList()">‹ Editar casa</button>
+      <h3>Editar: ${house.name}</h3>
+      <label class="fl">Nombre</label>
+      <input class="fi" type="text" id="edit-house-name" value="${house.name}"/>
+      <label class="fl">Contrato con IVA (₡)</label>
+      <input class="fi" type="number" id="edit-house-contract" value="${house.contractAmount||0}"/>
+      <label class="fl">Mano de obra total (₡)</label>
+      <input class="fi" type="number" id="edit-house-mo" value="${house.moAmount||0}"/>
+      ${subsHtml}
+      <div class="mbtns">
+        <button class="btn-no" onclick="closeM()">Cancelar</button>
+        <button class="btn-ok" onclick="saveEditHouse(${houseId})">Guardar</button>
+      </div>
+    </div></div>`;
 }
 
 </script>
