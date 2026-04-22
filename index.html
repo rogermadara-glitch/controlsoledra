@@ -131,6 +131,8 @@ table.st input[type=number]:focus{outline:none;border-color:var(--green)}
 .mo-row td{background:#00C85308}
 .mo-lbl{font-size:11px;font-weight:600;color:var(--green)}
 .dt{font-size:10px;color:var(--text3);white-space:nowrap}
+.fecha-editable{cursor:pointer;border-bottom:1px dashed var(--text3);padding-bottom:1px}
+.fecha-editable:hover{color:var(--green);border-bottom-color:var(--green)}
 .dbadge{font-size:10px;font-weight:600;padding:3px 8px;border-radius:10px;display:inline-block;white-space:nowrap}
 .dbadge.warn{background:var(--amber-dim);color:var(--amber);border:1px solid #FFB30040}
 .dbadge.due{background:var(--red-dim);color:var(--red);border:1px solid #FF444440}
@@ -361,7 +363,7 @@ input.fi::placeholder{color:var(--text3)}
         <div><div class="lobby-card-label">Configuración</div><div class="lobby-card-sub">Ajustes del sistema</div></div>
       </div>
     </div>
-    <div style="position:fixed;bottom:10px;right:10px;font-size:10px;color:var(--text3);font-weight:500;opacity:0.6">v15.2</div>
+    <div style="position:fixed;bottom:10px;right:10px;font-size:10px;color:var(--text3);font-weight:500;opacity:0.6">v15.3</div>
   </div>
 </div>
 <!-- DASHBOARD -->
@@ -818,7 +820,7 @@ function buildSubs(house,st){
   const t=mkTbl(["Subactividad","✓","Fecha"],[55,12,33]);const tb=document.createElement("tbody");
   st.subs.forEach((name,i)=>{
     const e=(house.subs[0]||{})[i]||{};const tr=document.createElement("tr");
-    tr.innerHTML=`<td>${name}</td><td><input type="checkbox" ${e.done?"checked":""} data-h="${house.id}" data-s="0" data-i="${i}" class="ck"/></td><td class="dt">${fd(e.doneAt)}</td>`;
+    tr.innerHTML=`<td>${name}</td><td><input type="checkbox" ${e.done?"checked":""} data-h="${house.id}" data-s="0" data-i="${i}" class="ck"/></td><td class="dt">${isAdmin?`<span class="fecha-editable" onclick="editarFechaCheck(${house.id},0,${i})">${fd(e.doneAt)}</span>`:fd(e.doneAt)}</td>`;
     tb.appendChild(tr);
   });
   t.appendChild(tb);
@@ -847,9 +849,9 @@ function buildSubs(house,st){
       const tr=document.createElement("tr");
       if(isPago)tr.className="pago-row";else if(isMO)tr.className="mo-row";
       if(isPro){
-        if(isPago)tr.innerHTML=`<td><span class="pago-lbl">Pago avance</span></td><td><input type="checkbox" ${e.done?"checked":""} data-h="${house.id}" data-s="${st.id}" data-i="${i}" class="ck"/></td><td class="dt">${fd(e.doneAt)}</td>`;
-        else if(isMO)tr.innerHTML=`<td><span class="mo-lbl">MO</span></td><td><input type="checkbox" ${e.done?"checked":""} data-h="${house.id}" data-s="${st.id}" data-i="${i}" class="ck"/></td><td class="dt">${fd(e.doneAt)}</td>`;
-        else tr.innerHTML=`<td>${sub.name}</td><td><input type="checkbox" ${e.done?"checked":""} data-h="${house.id}" data-s="${st.id}" data-i="${i}" class="ck"/></td><td class="dt">${fd(e.doneAt)}</td>`;
+        if(isPago)tr.innerHTML=`<td><span class="pago-lbl">Pago avance</span></td><td><input type="checkbox" ${e.done?"checked":""} data-h="${house.id}" data-s="${st.id}" data-i="${i}" class="ck"/></td><td class="dt">${isAdmin?`<span class="fecha-editable" onclick="editarFechaCheck(${house.id},${st.id},${i})">${fd(e.doneAt)}</span>`:fd(e.doneAt)}</td>`;
+        else if(isMO)tr.innerHTML=`<td><span class="mo-lbl">MO</span></td><td><input type="checkbox" ${e.done?"checked":""} data-h="${house.id}" data-s="${st.id}" data-i="${i}" class="ck"/></td><td class="dt">${isAdmin?`<span class="fecha-editable" onclick="editarFechaCheck(${house.id},${st.id},${i})">${fd(e.doneAt)}</span>`:fd(e.doneAt)}</td>`;
+        else tr.innerHTML=`<td>${sub.name}</td><td><input type="checkbox" ${e.done?"checked":""} data-h="${house.id}" data-s="${st.id}" data-i="${i}" class="ck"/></td><td class="dt">${isAdmin?`<span class="fecha-editable" onclick="editarFechaCheck(${house.id},${st.id},${i})">${fd(e.doneAt)}</span>`:fd(e.doneAt)}</td>`;
       }else{
         if(isPago)tr.innerHTML=`<td><span class="pago-lbl">Pago avance</span></td><td><input type="checkbox" ${e.done?"checked":""} data-h="${house.id}" data-s="${st.id}" data-i="${i}" class="ck"/></td><td><span class="pago-lbl">₡${fm(pagoAmt)}</span></td><td class="dt">${fd(e.doneAt)}</td>`;
         else if(isMO)tr.innerHTML=`<td><span class="mo-lbl">MO</span><br><span style="font-size:10px;color:#00C853">Ref: ₡${fm(moAmt)}</span></td><td><input type="checkbox" ${e.done?"checked":""} data-h="${house.id}" data-s="${st.id}" data-i="${i}" class="ck"/></td><td><input type="number" placeholder="0" value="${e.cost||""}" data-h="${house.id}" data-s="${st.id}" data-i="${i}" class="ci"/></td><td class="dt">${fd(e.doneAt)}</td>`;
@@ -875,9 +877,9 @@ function buildSubs(house,st){
   if(e.done)badge=`<span class="dbadge ok">Cobrada</span>`;
   const tr=document.createElement("tr");
   if(isPro){
-    tr.innerHTML=`<td>Ret.</td><td><input type="checkbox" ${e.done?"checked":""} data-h="${house.id}" data-s="4" data-i="0" class="ck"/></td><td>${badge}</td><td class="dt">${fd(e.doneAt)}</td>`;
+    tr.innerHTML=`<td>Ret.</td><td><input type="checkbox" ${e.done?"checked":""} data-h="${house.id}" data-s="4" data-i="0" class="ck"/></td><td>${badge}</td><td class="dt">${isAdmin?`<span class="fecha-editable" onclick="editarFechaCheck(${house.id},4,0)">${fd(e.doneAt)}</span>`:fd(e.doneAt)}</td>`;
   }else{
-    tr.innerHTML=`<td>Ret.</td><td><input type="checkbox" ${e.done?"checked":""} data-h="${house.id}" data-s="4" data-i="0" class="ck"/></td><td><span class="ret-amt">₡${fm(retAmt)}</span></td><td>${badge}</td><td class="dt">${fd(e.doneAt)}</td>`;
+    tr.innerHTML=`<td>Ret.</td><td><input type="checkbox" ${e.done?"checked":""} data-h="${house.id}" data-s="4" data-i="0" class="ck"/></td><td><span class="ret-amt">₡${fm(retAmt)}</span></td><td>${badge}</td><td class="dt">${isAdmin?`<span class="fecha-editable" onclick="editarFechaCheck(${house.id},4,0)">${fd(e.doneAt)}</span>`:fd(e.doneAt)}</td>`;
   }
   tb.appendChild(tr);t.appendChild(tb);
   bindChecks(t,(h)=>{
@@ -901,7 +903,7 @@ function buildSubs(house,st){
     if(!e.done&&arrTs){badge=rem>0?`<span class="dbadge warn">${rem}d faltan</span>`:`<span class="dbadge due">A bodega</span>`;}
     if(e.done)badge=`<span class="dbadge ok">En bodega</span>`;
     const tr=document.createElement("tr");
-    tr.innerHTML=`<td>Garantía</td><td><input type="checkbox" ${e.done?"checked":""} data-h="${house.id}" data-s="5" data-i="0" class="ck"/></td><td>${badge}</td><td class="dt">${fd(e.doneAt)}</td>`;
+    tr.innerHTML=`<td>Garantía</td><td><input type="checkbox" ${e.done?"checked":""} data-h="${house.id}" data-s="5" data-i="0" class="ck"/></td><td>${badge}</td><td class="dt">${isAdmin?`<span class="fecha-editable" onclick="editarFechaCheck(${house.id},5,0)">${fd(e.doneAt)}</span>`:fd(e.doneAt)}</td>`;
     tb.appendChild(tr);t.appendChild(tb);
     bindChecks(t,(h)=>{
   if((h.subs[5]||{})[0]&&h.subs[5][0].done){
@@ -1587,8 +1589,32 @@ function openEditHouseList(){
 
 function openEditHouse(houseId){
   const house=houses.find(h=>h.id===houseId);if(!house)return;
+  const etapaActual=house.stage;
+  let subsHtml="";
+  if(etapaActual>0){
+    [1,2,3].forEach(sid=>{
+      if(sid>=etapaActual)return;
+      const subs=getSubsForStage(sid);
+      const pi=pagoIdx(sid);
+      subsHtml+=`<div style="margin-top:16px">
+        <div style="font-size:12px;font-weight:600;color:var(--green);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.3px">Etapa ${sid}</div>`;
+      subs.forEach((sub,i)=>{
+        const e=(house.subs[sid]||{})[i]||{};
+        const isPago=i===pi;
+        const monto=isPago?Math.round((house.contractAmount||0)*(cfg.pct[sid]||0)/100):(parseFloat(e.cost||0)||0);
+        subsHtml+=`<div style="background:var(--card2);border-radius:8px;padding:10px 12px;margin-bottom:6px;border:1px solid var(--border)">
+          <div style="font-size:12px;color:var(--text2);margin-bottom:6px">${sub.name}</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            ${isPago?`<div style="grid-column:1/-1"><div style="font-size:11px;color:var(--text3);margin-bottom:3px">Monto (automático)</div><div style="font-size:13px;font-weight:600;color:var(--blue)">₡${fm(monto)}</div></div>`:`<div><div style="font-size:11px;color:var(--text3);margin-bottom:3px">Monto (₡)</div><input class="fi" type="number" id="edit-sub-${sid}-${i}" value="${e.cost||""}" placeholder="0" style="padding:6px 8px;font-size:12px"/></div>`}
+            <div><div style="font-size:11px;color:var(--text3);margin-bottom:3px">Fecha check</div><input class="fi" type="date" id="edit-fecha-${sid}-${i}" value="${e.doneAt?new Date(e.doneAt).toISOString().split('T')[0]:""}" style="padding:6px 8px;font-size:12px"/></div>
+          </div>
+        </div>`;
+      });
+      subsHtml+=`</div>`;
+    });
+  }
   document.getElementById("mroot").innerHTML=`
-    <div class="mwrap"><div class="modal">
+    <div class="mwrap"><div class="modal" style="max-height:85vh;overflow-y:auto">
       <button class="modal-back" onclick="openEditHouseList()">‹ Editar casa</button>
       <h3>Editar: ${house.name}</h3>
       <label class="fl">Nombre</label>
@@ -1597,6 +1623,7 @@ function openEditHouse(houseId){
       <input class="fi" type="number" id="edit-house-contract" value="${house.contractAmount||0}"/>
       <label class="fl">Mano de obra total (₡)</label>
       <input class="fi" type="number" id="edit-house-mo" value="${house.moAmount||0}"/>
+      ${subsHtml}
       <div class="mbtns">
         <button class="btn-no" onclick="closeM()">Cancelar</button>
         <button class="btn-ok" onclick="saveEditHouse(${houseId})">Guardar</button>
@@ -1615,14 +1642,26 @@ async function saveEditHouse(houseId){
   house.name=newName;
   house.contractAmount=newContract;
   house.moAmount=newMo;
+  // Guardar cambios en subactividades anteriores
+  [1,2,3].forEach(sid=>{
+    if(sid>=house.stage)return;
+    const subs=getSubsForStage(sid);
+    const pi=pagoIdx(sid);
+    subs.forEach((sub,i)=>{
+      if(i===pi)return;
+      const costoEl=document.getElementById(`edit-sub-${sid}-${i}`);
+      const fechaEl=document.getElementById(`edit-fecha-${sid}-${i}`);
+      if(!house.subs[sid])house.subs[sid]={};
+      if(!house.subs[sid][i])house.subs[sid][i]={};
+      if(costoEl)house.subs[sid][i].cost=costoEl.value;
+      if(fechaEl&&fechaEl.value)house.subs[sid][i].doneAt=new Date(fechaEl.value).getTime();
+    });
+  });
   save();pushAll();renderAll();
   showToast("Casa actualizada");
   closeM();
-  // Renombrar carpeta en Drive si cambió el nombre
   if(oldName!==newName){
-    try{
-      await fetch((cfg.sheetUrl||SHEET_URL)+"?action=renameHouseFolder&houseId="+houseId+"&newName="+encodeURIComponent(newName));
-    }catch(e){}
+    try{await fetch((cfg.sheetUrl||SHEET_URL)+"?action=renameHouseFolder&houseId="+houseId+"&newName="+encodeURIComponent(newName));}catch(e){}
   }
 }
 
@@ -1921,6 +1960,38 @@ function exportarExcel(){
   document.body.appendChild(a);a.click();document.body.removeChild(a);
   URL.revokeObjectURL(url);
   showToast("Excel descargado ✓");
+}
+
+function editarFechaCheck(houseId,stageId,subIdx){
+  const house=houses.find(h=>h.id===houseId);if(!house)return;
+  const sub=(house.subs[stageId]||{})[subIdx];
+  const fechaActual=sub&&sub.doneAt?new Date(sub.doneAt).toISOString().split('T')[0]:"";
+  const stageName={0:"Por iniciar",1:"Etapa 1",2:"Etapa 2",3:"Etapa 3",4:"Retención",5:"Garantía"}[stageId];
+  const subs=stageId===0?STAGES[0].subs:getSubsForStage(stageId);
+  const subName=stageId===0?subs[subIdx]:(subs[subIdx]?subs[subIdx].name:"");
+  document.getElementById("mroot").innerHTML=`
+    <div class="mwrap"><div class="modal">
+      <h3>Editar fecha</h3>
+      <p style="font-size:13px;color:var(--text3);margin-bottom:16px">${stageName} — ${subName}</p>
+      <label class="fl">Nueva fecha</label>
+      <input class="fi" type="date" id="edit-fecha-input" value="${fechaActual}"/>
+      <div class="mbtns">
+        <button class="btn-no" onclick="closeM()">Cancelar</button>
+        <button class="btn-ok" onclick="guardarFechaCheck(${houseId},${stageId},${subIdx})">Guardar</button>
+      </div>
+    </div></div>`;
+}
+
+function guardarFechaCheck(houseId,stageId,subIdx){
+  const house=houses.find(h=>h.id===houseId);if(!house)return;
+  const nuevaFecha=document.getElementById("edit-fecha-input").value;
+  if(!nuevaFecha){showToast("Seleccioná una fecha","err");return;}
+  if(!confirm("¿Guardás la nueva fecha?"))return;
+  if(!house.subs[stageId])house.subs[stageId]={};
+  if(!house.subs[stageId][subIdx])house.subs[stageId][subIdx]={};
+  house.subs[stageId][subIdx].doneAt=new Date(nuevaFecha).getTime();
+  save();pushAll();closeM();renderAll();
+  showToast("Fecha actualizada");
 }
 
 </script>
